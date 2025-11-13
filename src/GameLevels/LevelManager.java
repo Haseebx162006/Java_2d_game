@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
 public class LevelManager {
     private game Game;
     private BufferedImage[] LevelImg;
-    Level levelone;
+    private Level levelone;
     public LevelManager(game Game){
         this.Game=Game;
         importImgArray(); // this will load the image in an array
@@ -39,5 +39,8 @@ public class LevelManager {
             }
         }
 
+    }
+    public Level getLevel(){
+        return levelone;
     }
 }

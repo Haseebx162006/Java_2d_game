@@ -8,11 +8,11 @@ import java.awt.*;
 // This is the main Game class where i handle all the game loop . i develop diff logics and section to handle fps for
 // fps for screen rendering and ups for updating the game logic
 public class game implements Runnable{
-    private final int FPS=120;
+    private final int FPS=60;
     private Thread gameThread;  // My game loop will run in a separate thread making it free from other parts of game
     private  window_of_game game_window;
     private game_panel Game_panel;
-    private final int UPS=120;
+    private final int UPS=90;
     private Player player;
     private LevelManager levelManager;
 
@@ -36,8 +36,10 @@ public class game implements Runnable{
     }
     //*********************************
     private void initClasses(){
-        player= new Player(200,200);
         levelManager= new LevelManager(this);
+        player= new Player(200,200, (int) (64*SCALE),(int)(40*SCALE));
+        player.LoadlevelData(levelManager.getLevel().getLvldata());
+
     }
     private void StartgameLoop(){
         gameThread= new Thread(this);
