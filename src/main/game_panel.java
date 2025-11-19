@@ -1,54 +1,56 @@
 package main;
 
-import Function.features;
-import Inputes_of_game.keyboard_input;
+import Inputes_of_game.keyboard_input;  // Sahi import
 import Inputes_of_game.mouse_input;
-
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import static Function.features.player_features.*;
-import static Function.features.PlayerDirectons.*;
+
+
 public class game_panel extends JPanel {
-    //Declarations
-    //*********************************************
-    private mouse_input mouseInput;
-    game game1;
+    private final game Game;
+    private BufferedImage offscreenImage;
 
-    //********************************************
-
-    //***************************************************
-    // Constructor and paintcomponent
-    public  game_panel(game game1){   // Constructor
-        mouseInput= new mouse_input(this);
-        this.game1=game1;
-        setFocusable(true);
-        requestFocus();
-       addKeyListener(new keyboard_input(this));
-       addMouseListener(mouseInput);
-       addMouseMotionListener(mouseInput);
-       Set_sizeof_Panel();
+    public game_panel(game Game) {
+        this.Game = Game;
+        SetPanelSize();
+        setDoubleBuffered(true);
+        addKeyListener(new keyboard_input(this));  // Correct class name
+        mouse_input mouseInput = new mouse_input(this);
+        addMouseListener(mouseInput);
+        addMouseMotionListener(mouseInput);
     }
 
-    public void paintComponent(Graphics g){
+    private void SetPanelSize() {
+        Dimension size = new Dimension(game.GAME_WIDTH, game.GAME_HEIGHT);
+        setMinimumSize(size);
+        setPreferredSize(size);
+        setMaximumSize(size);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        game1.RenderGraphicsGame(g);
 
+        if (offscreenImage == null ||
+                offscreenImage.getWidth() != game.GAME_WIDTH ||
+                offscreenImage.getHeight() != game.GAME_HEIGHT) {
+            offscreenImage = new BufferedImage(game.GAME_WIDTH, game.GAME_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        }
+
+        Graphics2D offscreenGraphics = offscreenImage.createGraphics();
+        offscreenGraphics.setComposite(AlphaComposite.Src);
+        offscreenGraphics.setColor(Color.BLACK);
+        offscreenGraphics.fillRect(0, 0, game.GAME_WIDTH, game.GAME_HEIGHT);
+        offscreenGraphics.setComposite(AlphaComposite.SrcOver);
+        Game.RenderGraphicsGame(offscreenGraphics);
+        offscreenGraphics.dispose();
+
+        ((Graphics2D) g).drawImage(offscreenImage, 0, 0, null);
+        Toolkit.getDefaultToolkit().sync();
     }
-    //**********************************************************
-
-    private void Set_sizeof_Panel() {
-        Dimension dimension= new Dimension(game.GAME_WIDTH,game.GAME_HEIGHT);
-        setPreferredSize(dimension);
-    }
-
-    public void updategame() {
-
-    }
-
-    public game getGame1() {
-        return game1;
+    public game getGame1() {  // Method name ko keyboard_input ke according rakha
+        return Game;
     }
 }

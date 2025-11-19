@@ -1,5 +1,8 @@
 package Function;
 import main.game;
+
+import java.awt.geom.Rectangle2D;
+
 public class StaticMethodsforMovement {
     public static boolean CanMove(float x, float y, float width,float height, int[][] levelData){
         if (!IsSolid(x,y,levelData)) // top left ko check karne ke leye
@@ -20,11 +23,42 @@ public class StaticMethodsforMovement {
         }
         float xi= x/game.TILE_SIZE;
         float yi= y/game.TILE_SIZE;
-        
+
         int value= levelData[(int) yi][(int) xi];
         if (value>=48 || value<0 || value!=11) {
             return true;
         }
         return false;
+    }
+    public static float PositionNextToWall(Rectangle2D.Float box, float Xspeed){
+        int tile= (int) box.x/game.TILE_SIZE;
+        if (Xspeed>0){
+            // Player will move to right
+            int tilePostiton= tile*game.TILE_SIZE;
+            int xOff= (int)(game.TILE_SIZE-box.width);
+            return tilePostiton+xOff-1;
+        }else{
+            return tile*game.TILE_SIZE;
+        }
+    }
+    public static float CheckUnderEnvironmentorAbove(Rectangle2D.Float box, float airSpeed){
+        int tile= (int) box.y/game.TILE_SIZE;
+        if (airSpeed>0) {
+            // in this method i will calculathe falling mechanism
+            int tilePosition= tile*game.TILE_SIZE;
+            int Yoff= (int)(game.TILE_SIZE-box.height);
+            return tilePosition+Yoff-1;
+        }
+        else{
+            // ise bad me karon ga jumping wale ko Date 19-11-2025
+            return tile*game.TILE_SIZE;
+        }
+    }
+    public static boolean OnFloor(Rectangle2D.Float box, int[][] levelData){
+        if (!IsSolid(box.x,box.y+box.height+1,levelData))
+           if (!IsSolid(box.x+box.width,box.y+box.height+1,levelData))
+               return false;
+
+        return true;
     }
 }

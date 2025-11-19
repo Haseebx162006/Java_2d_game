@@ -21,13 +21,21 @@ public class mouse_input implements MouseListener, MouseMotionListener {
        if (e.getButton()==MouseEvent.BUTTON1){
            gamePanel.getGame1().getPlayer().setAttack(true);
        }
+       if (e.getButton()==MouseEvent.BUTTON3){
+           gamePanel.getGame1().getPlayer().setJump(true);
+       }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            gamePanel.getGame1().getPlayer().setAttack(false);
+        }
+        if (e.getButton() == MouseEvent.BUTTON3) {
+            gamePanel.getGame1().getPlayer().setJump(false);
 
+        }
     }
-
     @Override
     public void mouseEntered(MouseEvent e) {
 

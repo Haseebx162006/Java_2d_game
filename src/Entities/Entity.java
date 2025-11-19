@@ -30,8 +30,18 @@ public abstract class Entity {
 //    public Rectangle getBox() {
 //        return box;
 //    }
-    public void drawBox(Graphics g){
-        g.setColor(Color.green);
-        g.drawRect((int)box.x,(int)box.y,(int)box.width,(int)box.height);
+    public void drawBox(Graphics g, int padding){
+        Graphics2D g2 = (Graphics2D) g.create();
+        int drawX = Math.round(box.x) + padding;
+        int drawY = Math.round(box.y) + padding;
+        int drawWidth = Math.max(1, Math.round(box.width) - padding * 2);
+        int drawHeight = Math.max(1, Math.round(box.height) - padding * 2);
+        g2.setColor(new Color(0, 255, 0, 90));
+        Stroke oldStroke = g2.getStroke();
+        g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                1f, new float[]{4f, 4f}, 0f));
+        g2.drawRect(drawX, drawY, drawWidth, drawHeight);
+        g2.setStroke(oldStroke);
+        g2.dispose();
     }
 }
