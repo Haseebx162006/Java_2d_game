@@ -222,7 +222,9 @@ public class Player extends  Entity{
     }
 
     public void setJump(boolean jump) {
-        this.jump=jump;
+        if (jump && !DuringAir){
+            this.jump=true;
+        }
     }
     public void ResetDirection() {
         up=false;

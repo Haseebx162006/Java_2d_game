@@ -1,7 +1,8 @@
 package main;
 
-import Entities.Player;
-import GameLevels.LevelManager;
+import State.GameState;
+import State.MENU;
+import State.Playing;
 
 import java.awt.*;
 
@@ -13,9 +14,6 @@ public class game implements Runnable{
     private  window_of_game game_window;
     private game_panel Game_panel;
     private final int UPS=90;
-    private Player player;
-    private LevelManager levelManager;
-
     public static final int TILE_DEFAULT_SIZE=32;
     public static final float SCALE=1.0f;
     public static final int TILE_HEIGHT=14;
@@ -23,6 +21,9 @@ public class game implements Runnable{
     public static final int TILE_SIZE= (int)(TILE_DEFAULT_SIZE*SCALE);
     public static final int GAME_WIDTH= TILE_SIZE*TILE_WIDTH;
     public static final int GAME_HEIGHT= TILE_SIZE* TILE_HEIGHT;
+
+    private Playing playing;
+    private MENU Menue;
     //*********************************
     // Game constructor
     public game(){
@@ -36,9 +37,8 @@ public class game implements Runnable{
     }
     //*********************************
     private void initClasses(){
-        levelManager= new LevelManager(this);
-        player= new Player(200,200, (int) (64*SCALE),(int)(40*SCALE));
-        player.LoadlevelData(levelManager.getLevel().getLvldata());
+        Menue= new MENU(this);
+        playing=new Playing(this);
     }
     private void StartgameLoop(){
         gameThread= new Thread(this);
@@ -71,18 +71,39 @@ public class game implements Runnable{
     }
 
     public synchronized  void UpdateGame() {
-        player.UpdatePlayer();
-        levelManager.update();
+
+        switch (GameState.gameState){
+            case Menu:
+                Menue.update();
+            case Playing:
+                playing.update();
+                break;
+            default:
+                break;
+        }
+
     }
     public synchronized void RenderGraphicsGame(Graphics g){
-        levelManager.draw(g);
-        player.RenderPlayer(g);
+        switch (GameState.gameState){
+            case Menu:
+                Menue.draw(g);
+            case Playing:
+                playing.draw(g);
+                break;
+            default:
+                break;
+        }
     }
-    public Player getPlayer(){
-        return player;
+    public MENU getMenu(){
+        return Menue;
+    }
+    public Playing getPlaying(){
+        return playing;
     }
 
     public void windowFocusLost() {
-        player.ResetDirection();
+        if (GameState.gameState==GameState.Playing){
+            playing.getPlayer().ResetDirection();
+        }
     }
 }
