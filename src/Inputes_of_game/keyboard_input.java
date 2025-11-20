@@ -1,12 +1,10 @@
 package Inputes_of_game;
 
-import Entities.Player;
 import State.GameState;
 import main.game_panel;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import static Function.features.PlayerDirectons.*;
 
 public class keyboard_input implements KeyListener {
     private game_panel gamePanel;
@@ -21,10 +19,10 @@ public class keyboard_input implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
       switch (GameState.gameState){
-          case Menu:
+          case MENU:
               gamePanel.getGame1().getMenu().KeyPressed(e);
               break;
-          case Playing:
+          case PLAYING:
               gamePanel.getGame1().getPlaying().KeyPressed(e);
       }
     }
@@ -32,10 +30,10 @@ public class keyboard_input implements KeyListener {
     @Override
     public void keyReleased(KeyEvent e) {
         switch (GameState.gameState){
-            case Menu:
+            case MENU:
                 gamePanel.getGame1().getMenu().keyReleased(e);
                 break;
-            case Playing:
+            case PLAYING:
                 gamePanel.getGame1().getPlaying().keyReleased(e);
                 break;
         }

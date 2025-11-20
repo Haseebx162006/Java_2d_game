@@ -9,11 +9,11 @@ import java.awt.*;
 // This is the main Game class where i handle all the game loop . i develop diff logics and section to handle fps for
 // fps for screen rendering and ups for updating the game logic
 public class game implements Runnable{
-    private final int FPS=90;
+    private final int FPS=120;
     private Thread gameThread;  // My game loop will run in a separate thread making it free from other parts of game
     private  window_of_game game_window;
     private game_panel Game_panel;
-    private final int UPS=90;
+    private final int UPS=120;
     public static final int TILE_DEFAULT_SIZE=32;
     public static final float SCALE=1.0f;
     public static final int TILE_HEIGHT=14;
@@ -73,9 +73,10 @@ public class game implements Runnable{
     public synchronized  void UpdateGame() {
 
         switch (GameState.gameState){
-            case Menu:
+            case MENU:
                 Menue.update();
-            case Playing:
+                break;
+            case PLAYING:
                 playing.update();
                 break;
             default:
@@ -85,11 +86,14 @@ public class game implements Runnable{
     }
     public synchronized void RenderGraphicsGame(Graphics g){
         switch (GameState.gameState){
-            case Menu:
+            case MENU:
                 Menue.draw(g);
-            case Playing:
+                break;
+            case PLAYING:
                 playing.draw(g);
                 break;
+            case QUIT:
+                System.exit(0);
             default:
                 break;
         }
@@ -102,7 +106,7 @@ public class game implements Runnable{
     }
 
     public void windowFocusLost() {
-        if (GameState.gameState==GameState.Playing){
+        if (GameState.gameState==GameState.PLAYING){
             playing.getPlayer().ResetDirection();
         }
     }

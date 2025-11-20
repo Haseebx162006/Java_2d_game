@@ -16,7 +16,9 @@ public class game_panel extends JPanel {
         this.Game = Game;
         SetPanelSize();
         setDoubleBuffered(true);
-        addKeyListener(new keyboard_input(this));  // Correct class name
+        setFocusable(true);
+        requestFocusInWindow();
+        addKeyListener(new keyboard_input(this));
         mouse_input mouseInput = new mouse_input(this);
         addMouseListener(mouseInput);
         addMouseMotionListener(mouseInput);

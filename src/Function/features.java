@@ -1,7 +1,21 @@
 package Function;
 
 
+import main.game;
+
 public  class features {
+    public static class UI{
+        public static class BUTTON{
+            public static final int BUTTON_WIDTH_DEFAULT=140;
+            public static final int BUTTON_HEIGHT_DEFAULT=56;
+            public static final int BUTTON_WIDTH= (int)(BUTTON_WIDTH_DEFAULT* game.SCALE);
+            public static final int BUTTON_HEIGHT= (int)(BUTTON_HEIGHT_DEFAULT* game.SCALE);
+        }
+        public static class PauseButtons{
+            public static final int SOUND_BUTTON_DEFAULT=42;
+            public static final int SOUND_BUTTON=(int)(SOUND_BUTTON_DEFAULT*game.SCALE);
+        }
+    }
     public static class player_features{
         public static final int STANDING=0;
         public static final int RUNNING=1;

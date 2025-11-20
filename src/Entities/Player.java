@@ -65,13 +65,16 @@ public class Player extends  Entity{
 
         // Temporary variables to hold values only for canMove function and i then pass to original x and y
         float Xspeed=0;
+        boolean horizontalMove = false;
         if (left){
             Xspeed-=playerSpeed;
             Player_is_moving=true;
+            horizontalMove = true;
         }
         if (right) {
             Xspeed+=playerSpeed;
             Player_is_moving=true;
+            horizontalMove = true;
         }
         if (!DuringAir){
             if(!OnFloor(box,DataOfLevel)){
@@ -102,7 +105,7 @@ public class Player extends  Entity{
         else
             UpdatePostionX(Xspeed);
 
-        Player_is_moving=true;
+        Player_is_moving=horizontalMove;
 
     }
 
@@ -131,34 +134,26 @@ public class Player extends  Entity{
     }
 
     private void setAnimation() {
-        int startAnimation=Playermove;
-        if (Player_is_moving){
-            Playermove=RUNNING;
+        int previousAnimation = Playermove;
+
+        if (attacking) {
+            Playermove = ATTACK;
+        } else if (DuringAir) {
+            Playermove = (airSpeed < 0) ? JUMPING : FALLING;
+        } else if (Player_is_moving) {
+            Playermove = RUNNING;
+        } else {
+            Playermove = STANDING;
         }
-        else{
-            Playermove=STANDING;
-        }
-        if (DuringAir){
-            if (airSpeed<0)
-                Playermove=JUMPING;
-            else
-                Playermove=FALLING;
-        }
-        if (attacking){
-            Playermove=ATTACK;
-            if (startAnimation!=Playermove){
-                ResetAnimation();
-            }
+
+        if (previousAnimation != Playermove) {
+            ResetAnimation();
         }
     }
 
     private void ResetAnimation() {
         Animation_tick=0;
         Animation_index=0;
-    }
-
-    public void setMoving(boolean moving){
-        this.Player_is_moving=moving;
     }
 
     private void updateAnimation() {

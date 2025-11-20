@@ -2,6 +2,7 @@ package State;
 
 import Entities.Player;
 import GameLevels.LevelManager;
+import UI.Pause;
 import main.game;
 
 import java.awt.*;
@@ -11,6 +12,8 @@ import java.awt.event.MouseEvent;
 public class Playing extends State implements Methods{
     private Player player;
     private LevelManager levelManager;
+    private boolean paused=true;
+    private Pause pause;
     public Playing(game game1){
         super(game1);
         initClasses();
@@ -19,6 +22,7 @@ public class Playing extends State implements Methods{
         levelManager= new LevelManager(game1);
         player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE));
         player.LoadlevelData(levelManager.getLevel().getLvldata());
+        pause= new Pause();
     }
     public Player getPlayer(){
         return player;
@@ -32,16 +36,25 @@ public class Playing extends State implements Methods{
     public void update() {
         levelManager.update();
         player.UpdatePlayer();
+        pause.update();
     }
 
     @Override
     public void draw(Graphics g) {
         levelManager.draw(g);
         player.RenderPlayer(g);
+        pause.draw(g);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (paused){
+            pause.mousePressed(e);
+        }
         if (e.getButton()==MouseEvent.BUTTON1){
             player.setAttack(true);
         }
@@ -51,12 +64,10 @@ public class Playing extends State implements Methods{
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    @Override
     public void mouseReleased(MouseEvent e) {
+        if (paused){
+            pause.mouseReleased(e);
+        }
         if (e.getButton() == MouseEvent.BUTTON1) {
             player.setAttack(false);
         }
@@ -69,7 +80,9 @@ public class Playing extends State implements Methods{
 
     @Override
     public void mouseMoved(MouseEvent e) {
-
+        if (paused){
+            pause.mouseMoved(e);
+        }
     }
 
     @Override
@@ -86,14 +99,13 @@ public class Playing extends State implements Methods{
                 player.setJump(true);
                 break;
             case KeyEvent.VK_BACK_SPACE:
-                GameState.gameState=GameState.Menu;
+                GameState.gameState=GameState.MENU;
                 break;
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        player.setMoving(false);
         switch (e.getKeyCode()){
             case KeyEvent.VK_A:
                 player.setLeft(false);
