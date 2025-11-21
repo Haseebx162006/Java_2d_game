@@ -12,7 +12,7 @@ import java.awt.event.MouseEvent;
 public class Playing extends State implements Methods{
     private Player player;
     private LevelManager levelManager;
-    private boolean paused=true;
+    private boolean paused=false;
     private Pause pause;
     public Playing(game game1){
         super(game1);
@@ -22,7 +22,7 @@ public class Playing extends State implements Methods{
         levelManager= new LevelManager(game1);
         player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE));
         player.LoadlevelData(levelManager.getLevel().getLvldata());
-        pause= new Pause();
+        pause= new Pause(this);
     }
     public Player getPlayer(){
         return player;
@@ -34,20 +34,27 @@ public class Playing extends State implements Methods{
 
     @Override
     public void update() {
-        levelManager.update();
-        player.UpdatePlayer();
-        pause.update();
+        if (!paused){
+            levelManager.update();
+            player.UpdatePlayer();
+        }
+        else{
+            pause.update();
+        }
     }
 
     @Override
     public void draw(Graphics g) {
         levelManager.draw(g);
         player.RenderPlayer(g);
-        pause.draw(g);
+        if (paused) pause.draw(g);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
+    }
+    public void unpaused(){
+        paused=false;
     }
 
     @Override
@@ -77,6 +84,11 @@ public class Playing extends State implements Methods{
         }
 
     }
+    public void mouseDragged(MouseEvent e){
+        if (paused){
+            pause.mouseDragged(e);
+        }
+    }
 
     @Override
     public void mouseMoved(MouseEvent e) {
@@ -98,9 +110,8 @@ public class Playing extends State implements Methods{
             case KeyEvent.VK_SPACE:
                 player.setJump(true);
                 break;
-            case KeyEvent.VK_BACK_SPACE:
-                GameState.gameState=GameState.MENU;
-                break;
+            case KeyEvent.VK_ESCAPE:
+                paused=!paused;
         }
     }
 

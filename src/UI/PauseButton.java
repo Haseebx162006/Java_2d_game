@@ -60,7 +60,5 @@ public class PauseButton {
     private void createBox() {
         box= new Rectangle(x, y, width, height);
     }
-
-
-
+    
 }

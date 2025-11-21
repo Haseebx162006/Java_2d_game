@@ -15,6 +15,8 @@ public class LoadSave {
     public static final String Button_Background="menu_background.png";
     public static final String PAUSE="pause_menu.png";
     public static final String SOUND_BUTTON="sound_button.png";
+    public static final String URM_BUTTON="urm_buttons.png";
+    public static final String VOLUME_BUTTON="volume_buttons.png";
    public static BufferedImage GetAtlas(String fileName){
         BufferedImage img=null;
         InputStream is = LoadSave.class.getResourceAsStream("/"+fileName);

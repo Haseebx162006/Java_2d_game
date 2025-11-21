@@ -82,4 +82,8 @@ public class MenuButton {
     public Rectangle getButtonBox() {
         return buttonBox;
     }
+    public void reset(){
+        mousePressed=false;
+        mouseOver=false;
+    }
 }

@@ -83,4 +83,8 @@ public class Sound_Button extends PauseButton{
             column_index=0;
         }
     }
+    public void reset(){
+        mousePressed=false;
+        mouseOver=false;
+    }
 }

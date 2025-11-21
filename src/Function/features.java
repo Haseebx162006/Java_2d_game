@@ -3,6 +3,7 @@ package Function;
 
 import main.game;
 
+
 public  class features {
     public static class UI{
         public static class BUTTON{
@@ -14,6 +15,18 @@ public  class features {
         public static class PauseButtons{
             public static final int SOUND_BUTTON_DEFAULT=42;
             public static final int SOUND_BUTTON=(int)(SOUND_BUTTON_DEFAULT*game.SCALE);
+        }
+        public static class URM{
+            public static final int URM_BUTTON_DEFAULT=56;
+            public static final int URM_BUTTON=(int)(URM_BUTTON_DEFAULT*game.SCALE);
+        }
+        public static class VOLUME{
+            public static final int VOLUME_WIDTH_DEFAULT=28;
+            public static final int VOLUME_HEIGHT_DEFAULT=44;
+            public static final int SLIDER_WIDTH_DEFAULT=215;
+            public static final int VOLUME_HEIGHT=(int)(VOLUME_HEIGHT_DEFAULT*game.SCALE);
+            public static final int VOLUME_WIDTH=(int)(VOLUME_WIDTH_DEFAULT*game.SCALE);
+            public static final int SLIDER_WIDTH=(int)(SLIDER_WIDTH_DEFAULT*game.SCALE);
         }
     }
     public static class player_features{
