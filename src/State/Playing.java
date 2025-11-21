@@ -9,12 +9,19 @@ import main.game;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.util.Random;
+
+import static Function.features.background.*;
 
 public class Playing extends State implements Methods{
+    private BufferedImage background,bigCloud,smallCloud;
+    int[] cloudPositons;
     private Player player;
     private LevelManager levelManager;
     private boolean paused=false;
     private Pause pause;
+    private Random random= new Random();
     private int levelxOffset;
     private int left_border=(int)(0.2*game.GAME_WIDTH);
     private int right_border=(int)(0.8*game.GAME_WIDTH);
@@ -24,6 +31,13 @@ public class Playing extends State implements Methods{
     public Playing(game game1){
         super(game1);
         initClasses();
+        background=LoadSave.GetAtlas(LoadSave.BACKGROUND_IMAGE);
+        bigCloud=LoadSave.GetAtlas(LoadSave.BIG_CLOUD);
+        smallCloud=LoadSave.GetAtlas(LoadSave.SMALL_CLOUD);
+        cloudPositons= new int[9];
+        for (int i = 0; i < cloudPositons.length; i++) {
+            cloudPositons[i]= (int)(90*game.SCALE)+random.nextInt((int)(150*game.SCALE));
+        }
     }
     private void initClasses(){
         levelManager= new LevelManager(game1);
@@ -69,9 +83,21 @@ public class Playing extends State implements Methods{
 
     @Override
     public void draw(Graphics g) {
+        g.drawImage(background,0,0,game.GAME_WIDTH,game.GAME_HEIGHT,null);
+        drawCloud(g);
         levelManager.draw(g,levelxOffset);
         player.RenderPlayer(g,levelxOffset);
         if (paused) pause.draw(g);
+    }
+
+    private void drawCloud(Graphics g) {
+        for (int i = 0; i < 3; i++) {
+            g.drawImage(bigCloud,(i*BIG_CLOUD_WIDTH)-(int)(levelxOffset*0.3),(int)(204*game.SCALE),BIG_CLOUD_WIDTH,BIG_CLOUD_HEIGHT,null);
+        }
+        // chote clouds
+        for (int i = 0; i < cloudPositons.length; i++) {
+            g.drawImage(smallCloud,SMALL_CLOUD_WIDTH*4*i-(int)(levelxOffset*0.9),cloudPositons[i],SMALL_CLOUD_WIDTH,SMALL_CLOUD_HEIGHT,null);
+        }
     }
 
     @Override

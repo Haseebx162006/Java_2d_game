@@ -2,6 +2,7 @@ package UI;
 
 import Function.LoadSave;
 import State.GameState;
+import main.game;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -60,7 +61,6 @@ public class MenuButton {
     public void draw(Graphics g){
         g.drawImage(bufferedImage[index], xPosition - xOff, yPosition,
                 BUTTON_WIDTH, BUTTON_HEIGHT, null);
-
     }
     public void update(){
         index=0;

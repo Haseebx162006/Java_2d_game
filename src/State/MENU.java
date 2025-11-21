@@ -8,11 +8,11 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.nio.Buffer;
 
 public class MENU extends State implements  Methods{
     private MenuButton[] menuButtons= new MenuButton[3];
-    public BufferedImage bufferedImage;
+    public BufferedImage bufferedImage; // menu_background.png - the panel behind buttons
+    private BufferedImage consoleBackground; // menu_bg.jpg - the full-screen background
     int menuX,menuY,menuWidth,menuHeight;
     public MENU(game game1) {
         super(game1);
@@ -21,6 +21,9 @@ public class MENU extends State implements  Methods{
     }
 
     private void LoadBackground() {
+        // Load the full-screen console background
+        consoleBackground = LoadSave.GetAtlas(LoadSave.PAUSE_BACKGROUND);
+        // Load the button panel background
         bufferedImage= LoadSave.GetAtlas(LoadSave.Button_Background);
         menuWidth= (int)(bufferedImage.getWidth()* game.SCALE);
         menuHeight=(int)(bufferedImage.getHeight()*game.SCALE);
@@ -43,10 +46,14 @@ public class MENU extends State implements  Methods{
 
     @Override
     public void draw(Graphics g) {
-        g.drawImage(bufferedImage,menuX,menuY,menuWidth,menuHeight,null);
-       for (MenuButton m: menuButtons){
-           m.draw(g);
-       }
+        // Draw the full-screen console background first
+        g.drawImage(consoleBackground, 0, 0, game.GAME_WIDTH, game.GAME_HEIGHT, null);
+        // Draw the button panel background
+        g.drawImage(bufferedImage, menuX, menuY, menuWidth, menuHeight, null);
+        // Draw the buttons on top
+        for (MenuButton m: menuButtons){
+            m.draw(g);
+        }
     }
 
     @Override
