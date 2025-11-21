@@ -40,9 +40,9 @@ public class Player extends  Entity{
         setAnimation();
 
     }
-    public void RenderPlayer(Graphics g) {
+    public void RenderPlayer(Graphics g, int levelOff) {
 
-        int drawX = Math.round(box.x - XOffset);
+        int drawX = Math.round(box.x - XOffset)-levelOff;
         int drawY = Math.round(box.y - YOffset);
         g.drawImage(Animation[Playermove][Animation_index], drawX, drawY, width, height, null);
         if (DEBUG_HITBOX) {
@@ -227,4 +227,5 @@ public class Player extends  Entity{
         right=false;
         left=false;
     }
+
 }

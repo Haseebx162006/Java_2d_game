@@ -10,7 +10,8 @@ import java.io.InputStream;
 public class LoadSave {
     public static final String PlayerImgAddress="p2.png";
     public static final String OutsideImgLevelAddress="outside_sprites.png";
-    public static final String LevelOneImageData="level_one_data.png";
+   // public static final String LevelOneImageData="level_one_data.png";
+    public static final String LevelOneImageData="level_one_data_long.png";
     public static final String ButtonImages="button_atlas.png";
     public static final String Button_Background="menu_background.png";
     public static final String PAUSE="pause_menu.png";
@@ -34,12 +35,16 @@ public class LoadSave {
         return img;
     }
     public static int[][] GetLevelData(){
-       int[][] lvldata= new int[game.GAME_HEIGHT][game.TILE_WIDTH];
        BufferedImage img=GetAtlas(LevelOneImageData);
+       int[][] lvldata= new int[img.getHeight()][img.getWidth()];
         for (int i = 0; i < img.getHeight(); i++) {
             for (int j = 0; j < img.getWidth(); j++) {
                 Color color= new Color(img.getRGB(j,i));
-                lvldata[i][j]=color.getRed();
+                int value=color.getRed();
+                if (value>=48){
+                    value=0;
+                }
+                lvldata[i][j]=value;
             }
         }
         return lvldata;

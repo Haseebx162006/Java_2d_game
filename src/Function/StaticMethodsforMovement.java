@@ -15,17 +15,27 @@ public class StaticMethodsforMovement {
     public static boolean IsSolid(float x, float y, int[][] levelData){
         // Ye method check kare ga ke given surface solid ha ya nae
         // iska matlab ke jab sprite ka pixel is se touch hoga to yr true value return kare ga
-        if(x<0 || x>= game.GAME_WIDTH){
+        int maxWidth=levelData[0].length*game.TILE_SIZE;
+        int maxHeight=levelData.length*game.TILE_SIZE;
+        if(x<0 || x>= maxWidth){
             return true;
         }
-        if (y< 0|| y>=game.GAME_HEIGHT){
+        if (y< 0|| y>=maxHeight){
             return  true;
         }
         float xi= x/game.TILE_SIZE;
         float yi= y/game.TILE_SIZE;
+        
+        // Bounds checking to prevent array index out of bounds
+        int tileX = (int) xi;
+        int tileY = (int) yi;
+        if(tileX < 0 || tileX >= levelData[0].length || tileY < 0 || tileY >= levelData.length){
+            return true;
+        }
 
-        int value= levelData[(int) yi][(int) xi];
-        if (value>=48 || value<0 || value!=11) {
+        int value= levelData[tileY][tileX];
+        // Tile value 11 is air/empty, anything else is solid
+        if (value != 11) {
             return true;
         }
         return false;

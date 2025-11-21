@@ -1,6 +1,7 @@
 package State;
 
 import Entities.Player;
+import Function.LoadSave;
 import GameLevels.LevelManager;
 import UI.Pause;
 import main.game;
@@ -14,6 +15,12 @@ public class Playing extends State implements Methods{
     private LevelManager levelManager;
     private boolean paused=false;
     private Pause pause;
+    private int levelxOffset;
+    private int left_border=(int)(0.2*game.GAME_WIDTH);
+    private int right_border=(int)(0.8*game.GAME_WIDTH);
+    private int levelTilesw= LoadSave.GetLevelData()[0].length;
+    private int maxTiles=levelTilesw-game.TILE_WIDTH;
+    private int maxLevelOffset=maxTiles*game.TILE_SIZE;
     public Playing(game game1){
         super(game1);
         initClasses();
@@ -37,16 +44,33 @@ public class Playing extends State implements Methods{
         if (!paused){
             levelManager.update();
             player.UpdatePlayer();
+            checkBorder();
         }
         else{
             pause.update();
         }
     }
 
+    private void checkBorder() {
+        int playerX= (int) player.getBox().x;
+        int difference=playerX-levelxOffset;
+        if (difference>right_border){
+            levelxOffset+=difference-right_border;
+        }
+        else if (difference<left_border){
+            levelxOffset+=difference-left_border;
+        }
+        if (levelxOffset>maxLevelOffset){
+            levelxOffset=maxLevelOffset;
+        } else if (levelxOffset<0) {
+            levelxOffset=0;
+        }
+    }
+
     @Override
     public void draw(Graphics g) {
-        levelManager.draw(g);
-        player.RenderPlayer(g);
+        levelManager.draw(g,levelxOffset);
+        player.RenderPlayer(g,levelxOffset);
         if (paused) pause.draw(g);
     }
 

@@ -6,7 +6,16 @@ import java.awt.geom.Rectangle2D;
 public abstract class Entity {
     protected  float x;
     protected float y;
-    protected Rectangle2D.Float box;// this is the hitbox that will be drawn outsde of player
+
+    public Rectangle2D.Float getBox() {
+        return box;
+    }
+
+    public void setBox(Rectangle2D.Float box) {
+        this.box = box;
+    }
+
+    protected Rectangle2D.Float box; // this is the hitbox that will be drawn outsde of player
     protected int width;
     protected int height;
     public Entity(float x, float y, int width, int height){
