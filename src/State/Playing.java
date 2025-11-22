@@ -1,5 +1,6 @@
 package State;
 
+import Entities.EnemyMangerclass;
 import Entities.Player;
 import Function.LoadSave;
 import GameLevels.LevelManager;
@@ -22,6 +23,7 @@ public class Playing extends State implements Methods{
     private boolean paused=false;
     private Pause pause;
     private Random random= new Random();
+    private EnemyMangerclass enemyMangerclass;
     private int levelxOffset;
     private int left_border=(int)(0.2*game.GAME_WIDTH);
     private int right_border=(int)(0.8*game.GAME_WIDTH);
@@ -41,8 +43,10 @@ public class Playing extends State implements Methods{
     }
     private void initClasses(){
         levelManager= new LevelManager(game1);
+        enemyMangerclass= new EnemyMangerclass(this);
         player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE));
         player.LoadlevelData(levelManager.getLevel().getLvldata());
+        enemyMangerclass.loadLevelData(levelManager.getLevel().getLvldata());
         pause= new Pause(this);
     }
     public Player getPlayer(){
@@ -59,6 +63,7 @@ public class Playing extends State implements Methods{
             levelManager.update();
             player.UpdatePlayer();
             checkBorder();
+            enemyMangerclass.update();
         }
         else{
             pause.update();
@@ -87,6 +92,7 @@ public class Playing extends State implements Methods{
         drawCloud(g);
         levelManager.draw(g,levelxOffset);
         player.RenderPlayer(g,levelxOffset);
+        enemyMangerclass.draw(g,levelxOffset);
         if (paused) pause.draw(g);
     }
 

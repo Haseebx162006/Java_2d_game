@@ -1,11 +1,13 @@
 package Function;
 
+import Entities.Enemy1;
 import main.game;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 public class LoadSave {
     public static final String PlayerImgAddress="p2.png";
@@ -22,6 +24,7 @@ public class LoadSave {
     public static final String BIG_CLOUD="big_clouds.png";
     public static final String SMALL_CLOUD="small_clouds.png";
     public static final  String PAUSE_BACKGROUND="menu_bg.jpg";
+    public static final  String ENEMY_1_PNG ="enemy_1.png";
    public static BufferedImage GetAtlas(String fileName){
         BufferedImage img=null;
         InputStream is = LoadSave.class.getResourceAsStream("/"+fileName);
@@ -37,6 +40,20 @@ public class LoadSave {
             }
         }
         return img;
+    }
+    public static ArrayList<Enemy1> getEnemyCrab() {
+        BufferedImage img = GetAtlas(LevelOneImageData);
+        ArrayList<Enemy1> list = new ArrayList<>();
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i));
+                int value = color.getGreen();
+                if (value == features.UI.Enemies.ENEMY_1) {
+                    list.add(new Enemy1(j * game.TILE_SIZE, i * game.TILE_SIZE));
+                }
+            }
+        }
+        return list;
     }
     public static int[][] GetLevelData(){
        BufferedImage img=GetAtlas(LevelOneImageData);

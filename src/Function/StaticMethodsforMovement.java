@@ -64,11 +64,14 @@ public class StaticMethodsforMovement {
             return tile*game.TILE_SIZE;
         }
     }
+    public static boolean isFloor(Rectangle2D.Float box,float Speed,int[][] levelData){
+        return IsSolid(box.x+Speed,box.y+box.height+1,levelData);
+    }
     public static boolean OnFloor(Rectangle2D.Float box, int[][] levelData){
         if (!IsSolid(box.x,box.y+box.height+1,levelData))
            if (!IsSolid(box.x+box.width,box.y+box.height+1,levelData))
                return false;
-
         return true;
     }
+
 }

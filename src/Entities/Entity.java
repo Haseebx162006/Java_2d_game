@@ -31,14 +31,6 @@ public abstract class Entity {
     protected void CreateBox(float x, float y, float width, float height) {
         box= new Rectangle2D.Float(x, y,width,height);  // have done typcasting here
     }
-//    public void UpdateBox(){
-//        box.x=(int )x;
-//        box.y=(int ) y;
-//    }
-
-//    public Rectangle getBox() {
-//        return box;
-//    }
     public void drawBox(Graphics g, int padding){
         Graphics2D g2 = (Graphics2D) g.create();
         int drawX = Math.round(box.x) + padding;
