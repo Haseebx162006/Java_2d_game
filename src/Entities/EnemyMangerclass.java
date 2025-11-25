@@ -4,6 +4,7 @@ import Function.LoadSave;
 import State.Playing;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -24,6 +25,12 @@ public class EnemyMangerclass {
             c.loadLevelData(levelData);
         }
     }
+    
+    public void setPlayer(Player player) {
+        for (Enemy1 c : crabbies) {
+            c.setPlayer(player);
+        }
+    }
     public void draw(Graphics g,int levelxoffset){
         drawCrbbies(g,levelxoffset);
     }
@@ -35,6 +42,12 @@ public class EnemyMangerclass {
     }
     public void addEnemies(){
         crabbies=LoadSave.getEnemyCrab();
+    }
+    
+    public void resetEnemies() {
+        // Reset all enemies for replay
+        crabbies.clear();
+        addEnemies();
     }
     private void LoadEnemyImg() {
         Enemy_images= new BufferedImage[5][9];
@@ -48,6 +61,27 @@ public class EnemyMangerclass {
     public void update(){
         for (Enemy1 c: crabbies){
             c.update();
+        }
+    }
+    
+    // Check if player's attack hits any enemy
+    public void checkPlayerAttack(Rectangle2D.Float attackBox) {
+        for (Enemy1 enemy : crabbies) {
+            if (!enemy.isDead() && attackBox.intersects(enemy.getBox())) {
+                enemy.takeDamage(10); // Player deals 10 damage
+            }
+        }
+    }
+    
+    // Check if any enemy's attack hits player
+    public void checkEnemyAttacks(Player player) {
+        for (Enemy1 enemy : crabbies) {
+            if (!enemy.isDead()) {
+                Rectangle2D.Float enemyAttackBox = enemy.getAttackHitbox();
+                if (enemyAttackBox != null && enemyAttackBox.intersects(player.getBox())) {
+                    player.takeDamage(5); // Enemy deals 5 damage
+                }
+            }
         }
     }
 }

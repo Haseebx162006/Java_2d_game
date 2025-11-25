@@ -119,7 +119,8 @@ public class Pause {
         }
         else if (isPlayerPressing(e,replayButton)){
             if (replayButton.isMousePressed()){
-                System.out.println("Ah shit, Here wo Go againn!");
+                playing.resetGame();
+                playing.unpaused();
             }
         }
         else if (isPlayerPressing(e,unpauseButton)){

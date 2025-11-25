@@ -4,6 +4,7 @@ import Function.LoadSave;
 import main.game;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import static Function.features.player_features.*;
 import static Function.StaticMethodsforMovement.*;
@@ -27,6 +28,16 @@ public class Player extends  Entity{
     private float jumpSpeed=  (-2.25f* game.SCALE);
     private float fallSpeed= 0.5f*game.SCALE;
     private boolean DuringAir=false;
+    
+    // Health system
+    private int maxHealth = 100;
+    private int currentHealth = maxHealth;
+    private boolean isHit = false;
+    private int hitCooldown = 0;
+    private static final int HIT_COOLDOWN_TIME = 60; // frames of invincibility after being hit
+    private boolean isDead = false;
+    private int deathAnimationTimer = 0;
+    private static final int DEATH_ANIMATION_DURATION = 120; // frames for death animation
     public Player(float x, float y,int width,int height) {
         super(x, y,width,height);
         load_Animations();
@@ -35,10 +46,107 @@ public class Player extends  Entity{
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
     }
     public void UpdatePlayer(){
+        if (isDead) {
+            updateDeathAnimation();
+            return;
+        }
         UpdatePosition();
         updateAnimation();
         setAnimation();
-
+        updateHitCooldown();
+    }
+    
+    private void updateDeathAnimation() {
+        deathAnimationTimer++;
+    }
+    
+    public boolean isDeathAnimationComplete() {
+        return isDead && deathAnimationTimer >= DEATH_ANIMATION_DURATION;
+    }
+    
+    private void updateHitCooldown() {
+        if (hitCooldown > 0) {
+            hitCooldown--;
+            if (hitCooldown == 0) {
+                isHit = false;
+            }
+        }
+    }
+    
+    // Health methods
+    public void takeDamage(int damage) {
+        if (isDead || hitCooldown > 0) {
+            return; // Can't take damage if dead or in cooldown
+        }
+        currentHealth -= damage;
+        if (currentHealth <= 0) {
+            currentHealth = 0;
+            isDead = true;
+            deathAnimationTimer = 0;
+            Playermove = GROUND; // Play death animation
+        } else {
+            isHit = true;
+            hitCooldown = HIT_COOLDOWN_TIME;
+        }
+    }
+    
+    public int getCurrentHealth() {
+        return currentHealth;
+    }
+    
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+    
+    public boolean isAlive() {
+        return !isDead && currentHealth > 0;
+    }
+    
+    public boolean isDead() {
+        return isDead;
+    }
+    
+    public void reset() {
+        // Reset player for replay
+        currentHealth = maxHealth;
+        isDead = false;
+        isHit = false;
+        hitCooldown = 0;
+        deathAnimationTimer = 0;
+        attacking = false;
+        Playermove = STANDING;
+        ResetAnimation();
+        // Reset position
+        box.x = 200;
+        box.y = 200;
+        DuringAir = false;
+        airSpeed = 0;
+    }
+    
+    public boolean isAttacking() {
+        return attacking;
+    }
+    
+    // Get attack hitbox (area in front of player when attacking)
+    public Rectangle2D.Float getAttackHitbox() {
+        if (!attacking) {
+            return null;
+        }
+        float attackWidth = 40 * game.SCALE;
+        float attackHeight = box.height;
+        float attackX;
+        
+        // Attack hitbox extends in the direction player is facing
+        if (left) {
+            attackX = box.x - attackWidth;
+        } else if (right) {
+            attackX = box.x + box.width;
+        } else {
+            // Default to right if no direction
+            attackX = box.x + box.width;
+        }
+        
+        return new Rectangle2D.Float(attackX, box.y, attackWidth, attackHeight);
     }
     public void RenderPlayer(Graphics g, int levelOff) {
 
@@ -94,7 +202,7 @@ public class Player extends  Entity{
                     box.y = correctedY;
                 }
                 if (airSpeed>0) {
-                    reset();
+                    resetAirState();
                 }
                 else{
                     airSpeed=fallSpeed;  // jab gravity ose neeche khenche ge to Player ke girne ke speed falling speed ke equal hojaye ge jese pehle he mene uper set keya howa
@@ -118,7 +226,7 @@ public class Player extends  Entity{
         jump=false;
     }
 
-    private void reset() {
+    private void resetAirState() {
         airSpeed=0;
         DuringAir=false;
         canJump=true;
@@ -134,6 +242,11 @@ public class Player extends  Entity{
     }
 
     private void setAnimation() {
+        if (isDead) {
+            Playermove = GROUND; // Keep death animation
+            return;
+        }
+        
         int previousAnimation = Playermove;
 
         if (attacking) {

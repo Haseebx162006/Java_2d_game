@@ -10,6 +10,7 @@ import main.game;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
@@ -30,6 +31,11 @@ public class Playing extends State implements Methods{
     private int levelTilesw= LoadSave.GetLevelData()[0].length;
     private int maxTiles=levelTilesw-game.TILE_WIDTH;
     private int maxLevelOffset=maxTiles*game.TILE_SIZE;
+    
+    // Game Over state
+    private boolean showGameOver = false;
+    private int gameOverTimer = 0;
+    private static final int GAME_OVER_DISPLAY_TIME = 180; // frames before returning to menu
     public Playing(game game1){
         super(game1);
         initClasses();
@@ -47,7 +53,25 @@ public class Playing extends State implements Methods{
         player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE));
         player.LoadlevelData(levelManager.getLevel().getLvldata());
         enemyMangerclass.loadLevelData(levelManager.getLevel().getLvldata());
+        enemyMangerclass.setPlayer(player); // Pass player reference to enemies
         pause= new Pause(this);
+    }
+    
+    public void resetGame() {
+        // Reset game state for replay
+        showGameOver = false;
+        gameOverTimer = 0;
+        levelxOffset = 0;
+        paused = false;
+        
+        // Reset player
+        player.reset();
+        player.LoadlevelData(levelManager.getLevel().getLvldata());
+        
+        // Reset enemies
+        enemyMangerclass.resetEnemies();
+        enemyMangerclass.loadLevelData(levelManager.getLevel().getLvldata());
+        enemyMangerclass.setPlayer(player);
     }
     public Player getPlayer(){
         return player;
@@ -59,15 +83,54 @@ public class Playing extends State implements Methods{
 
     @Override
     public void update() {
-        if (!paused){
+        if (showGameOver) {
+            gameOverTimer++;
+            if (gameOverTimer >= GAME_OVER_DISPLAY_TIME) {
+                // Return to menu after showing game over
+                GameState.gameState = GameState.MENU;
+                showGameOver = false;
+                gameOverTimer = 0;
+            }
+            return;
+        }
+        
+        if (player.isDead()) {
+            if (player.isDeathAnimationComplete() && !showGameOver) {
+                showGameOver = true;
+                gameOverTimer = 0;
+            }
+        }
+        
+        if (!paused && !player.isDead()){
             levelManager.update();
             player.UpdatePlayer();
             checkBorder();
             enemyMangerclass.update();
+            checkCombat(); // Check for attacks and collisions
         }
-        else{
+        else if (paused){
             pause.update();
+        } else if (player.isDead()) {
+            // Only update player death animation
+            player.UpdatePlayer();
         }
+    }
+    
+    private void checkCombat() {
+        if (!player.isAlive()) {
+            return; // Player is dead, no combat
+        }
+        
+        // Check player attacks on enemies
+        if (player.isAttacking()) {
+            Rectangle2D.Float playerAttackBox = player.getAttackHitbox();
+            if (playerAttackBox != null) {
+                enemyMangerclass.checkPlayerAttack(playerAttackBox);
+            }
+        }
+        
+        // Check enemy attacks on player
+        enemyMangerclass.checkEnemyAttacks(player);
     }
 
     private void checkBorder() {
@@ -93,7 +156,63 @@ public class Playing extends State implements Methods{
         levelManager.draw(g,levelxOffset);
         player.RenderPlayer(g,levelxOffset);
         enemyMangerclass.draw(g,levelxOffset);
+        drawHealthBar(g); // Draw player health bar
+        
+        if (showGameOver) {
+            drawGameOver(g);
+        }
+        
         if (paused) pause.draw(g);
+    }
+    
+    private void drawGameOver(Graphics g) {
+        // Semi-transparent overlay
+        g.setColor(new Color(0, 0, 0, 180));
+        g.fillRect(0, 0, game.GAME_WIDTH, game.GAME_HEIGHT);
+        
+        // Game Over text
+        g.setColor(Color.RED);
+        g.setFont(new Font("Arial", Font.BOLD, 48));
+        FontMetrics fm = g.getFontMetrics();
+        String gameOverText = "GAME OVER";
+        int textX = (game.GAME_WIDTH - fm.stringWidth(gameOverText)) / 2;
+        int textY = game.GAME_HEIGHT / 2 - 50;
+        g.drawString(gameOverText, textX, textY);
+        
+        // Return to menu message
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 24));
+        String menuText = "Returning to menu...";
+        fm = g.getFontMetrics();
+        int menuX = (game.GAME_WIDTH - fm.stringWidth(menuText)) / 2;
+        int menuY = game.GAME_HEIGHT / 2 + 20;
+        g.drawString(menuText, menuX, menuY);
+    }
+    
+    private void drawHealthBar(Graphics g) {
+        int barWidth = 200;
+        int barHeight = 20;
+        int x = 10;
+        int y = 10;
+        
+        // Background (red)
+        g.setColor(Color.RED);
+        g.fillRect(x, y, barWidth, barHeight);
+        
+        // Health (green)
+        int healthWidth = (int)((player.getCurrentHealth() / (float)player.getMaxHealth()) * barWidth);
+        g.setColor(Color.GREEN);
+        g.fillRect(x, y, healthWidth, barHeight);
+        
+        // Border
+        g.setColor(Color.WHITE);
+        g.drawRect(x, y, barWidth, barHeight);
+        
+        // Health text
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+        String healthText = player.getCurrentHealth() + " / " + player.getMaxHealth();
+        g.drawString(healthText, x + 5, y + 15);
     }
 
     private void drawCloud(Graphics g) {

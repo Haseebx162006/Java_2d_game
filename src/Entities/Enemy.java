@@ -3,6 +3,7 @@ import static Function.features.UI.Enemies.*;
 import static Function.StaticMethodsforMovement.*;
 import static Function.features.PlayerDirectons.*;
 import main.game;
+import java.awt.geom.Rectangle2D;
 
 public abstract class Enemy extends Entity {
     public Enemy(float x, float y, int width, int height,int Type_of_enemy) {
@@ -11,17 +12,32 @@ public abstract class Enemy extends Entity {
         CreateBox(x,y,width,height);
         this.State_of_enemy = RUNNING;
     }
-    private float Walk=1.0f*game.SCALE;
-    private int animationIndex;
-    private int State_of_enemy;
-    private int Type_of_enemy;
-    private int animationTick;
-    private int[][] levelData;
-    private float airSpeed = 0;
-    private boolean inAir = false;
-    private int walkDir=LEFT;
-    private float gravity = 0.04f * game.SCALE;
-    private float fallSpeed = 0.5f * game.SCALE;
+    protected float Walk=1.0f*game.SCALE;
+    protected int animationIndex;
+    protected int State_of_enemy;
+    protected int Type_of_enemy;
+    protected int animationTick;
+    protected int[][] levelData;
+    protected float airSpeed = 0;
+    protected boolean inAir = false;
+    protected int walkDir=LEFT;
+    protected float gravity = 0.04f * game.SCALE;
+    protected float fallSpeed = 0.5f * game.SCALE;
+    
+    // Health and combat system
+    protected int maxHealth = 50;
+    protected int currentHealth = maxHealth;
+    protected boolean isDead = false;
+    protected boolean isHit = false;
+    protected int hitCooldown = 0;
+    protected static final int HIT_COOLDOWN_TIME = 30;
+    
+    // Player detection and attack
+    protected Player player = null;
+    protected float visionRange = 200f * game.SCALE; // How far enemy can see player
+    protected float attackRange = 30f * game.SCALE; // How close enemy needs to be to attack
+    protected int attackCooldown = 0;
+    protected static final int ATTACK_COOLDOWN_TIME = 90; // Frames between attacks
 
     public int getAnimationSpeed() {
         return animationSpeed;
@@ -74,8 +90,76 @@ public abstract class Enemy extends Entity {
             airSpeed = 0;
         } else {
             inAir = true;
-            airSpeed = 0; // Initialize airSpeed when starting in air
+            airSpeed = 0;
         }
+    }
+    
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
+    
+    // Health methods
+    public void takeDamage(int damage) {
+        if (isDead || hitCooldown > 0) {
+            return;
+        }
+        currentHealth -= damage;
+        if (currentHealth <= 0) {
+            currentHealth = 0;
+            isDead = true;
+            State_of_enemy = DEAD;
+        } else {
+            isHit = true;
+            State_of_enemy = HIT;
+            hitCooldown = HIT_COOLDOWN_TIME;
+        }
+    }
+    
+    public boolean isDead() {
+        return isDead;
+    }
+    
+    public int getCurrentHealth() {
+        return currentHealth;
+    }
+    
+    // Check if player is in vision range
+    protected boolean canSeePlayer() {
+        if (player == null || isDead) {
+            return false;
+        }
+        float distance = (float) Math.sqrt(
+            Math.pow(player.getBox().x - box.x, 2) + 
+            Math.pow(player.getBox().y - box.y, 2)
+        );
+        return distance <= visionRange;
+    }
+    
+    // Check if player is in attack range
+    protected boolean canAttackPlayer() {
+        if (player == null || isDead || attackCooldown > 0) {
+            return false;
+        }
+        float distance = Math.abs(player.getBox().x - box.x);
+        return distance <= attackRange;
+    }
+    
+    // Get attack hitbox (area in front of enemy when attacking)
+    public Rectangle2D.Float getAttackHitbox() {
+        if (State_of_enemy != ATTACK || isDead) {
+            return null;
+        }
+        float attackWidth = 30 * game.SCALE;
+        float attackHeight = box.height;
+        float attackX;
+        
+        if (walkDir == LEFT) {
+            attackX = box.x - attackWidth;
+        } else {
+            attackX = box.x + box.width;
+        }
+        
+        return new Rectangle2D.Float(attackX, box.y, attackWidth, attackHeight);
     }
     
     private void adjustPositionOnFloor(int[][] levelData) {
@@ -123,77 +207,9 @@ public abstract class Enemy extends Entity {
         }
     }
 
-    private int animationSpeed=25;
+    protected int animationSpeed=25;
 
-    public void update(){
-        if (levelData != null) {
-            updatePosition();
-        }
-        updateAnimation();
-    }
-
-    private void updatePosition() {
-        // Check if enemy is on floor
-        if (!inAir) {
-            if (!OnFloor(box, levelData)) {
-                inAir = true;
-                airSpeed = 0;
-            }
-        }
-
-        if (inAir) {
-            // Apply gravity when in air
-            float newY = box.y + airSpeed;
-            if (CanMove(box.x, newY, box.width, box.height, levelData)) {
-                box.y = newY;
-                airSpeed += gravity;
-            } else {
-                // Hit something (floor or ceiling)
-                float correctedY = CheckUnderEnvironmentorAbove(box, airSpeed);
-                if (correctedY >= 0 && correctedY < game.GAME_HEIGHT) {
-                    box.y = correctedY;
-                }
-                if (airSpeed > 0) {
-                    // Hit floor
-                    airSpeed = 0;
-                    inAir = false;
-                } else {
-                    // Hit ceiling
-                    airSpeed = fallSpeed;
-                }
-            }
-        } else {
-            // Enemy is on ground, handle patrolling
-            switch (State_of_enemy){
-                case IDLE:
-                    State_of_enemy=RUNNING;
-                    break;
-                case RUNNING:
-                    float Speed=0;
-                    if (walkDir==LEFT){
-                        Speed=-Walk;
-                    }
-                    else{
-                        Speed=Walk;
-                    }
-                    
-                    // Check if can move horizontally and if there's floor ahead
-                    float newX = box.x + Speed;
-                    boolean canMoveHorizontally = CanMove(newX, box.y, box.width, box.height, levelData);
-                    boolean floorAhead = isFloorAhead(Speed, levelData);
-                    
-                    if (canMoveHorizontally && floorAhead) {
-                        box.x = newX;
-                    } else {
-                        // Can't move (wall collision) or no floor ahead (cliff) - change direction
-                        ChangeDirection();
-                    }
-                    break;
-            }
-        }
-    }
-    
-    private boolean isFloorAhead(float Speed, int[][] levelData) {
+    protected boolean isFloorAhead(float Speed, int[][] levelData) {
         // Check if there's floor under both corners of the box after moving
         float newX = box.x + Speed;
         // Check floor slightly ahead (one pixel below the box)
@@ -213,13 +229,28 @@ public abstract class Enemy extends Entity {
             walkDir=LEFT;
     }
 
-    private void updateAnimation(){
-        animationTick++;
-        if (animationTick>=animationSpeed){
-            animationTick=0;
-            animationIndex++;
-            if (animationIndex>=SPRITE(Type_of_enemy,State_of_enemy)){
-                animationIndex=0;
+    protected void updateAnimation(){
+        if (isDead && State_of_enemy == DEAD) {
+            // For dead enemies, play death animation once then keep last frame
+            animationTick++;
+            if (animationTick>=animationSpeed){
+                animationTick=0;
+                animationIndex++;
+                int maxSprites = SPRITE(Type_of_enemy,State_of_enemy);
+                if (animationIndex>=maxSprites){
+                    // Keep last frame of death animation
+                    animationIndex = maxSprites - 1;
+                }
+            }
+        } else {
+            // Normal animation loop
+            animationTick++;
+            if (animationTick>=animationSpeed){
+                animationTick=0;
+                animationIndex++;
+                if (animationIndex>=SPRITE(Type_of_enemy,State_of_enemy)){
+                    animationIndex=0;
+                }
             }
         }
     }

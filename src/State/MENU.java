@@ -36,6 +36,13 @@ public class MENU extends State implements  Methods{
         menuButtons[1]= new MenuButton(game.GAME_WIDTH/2,(int)(220*game.SCALE),1,GameState.OPTIONS);
         menuButtons[2]= new MenuButton(game.GAME_WIDTH/2,(int)(290*game.SCALE),2,GameState.QUIT);
     }
+    
+    public void resetGame() {
+        // Reset game when starting new game from menu
+        if (game1.getPlaying() != null) {
+            game1.getPlaying().resetGame();
+        }
+    }
 
     @Override
     public void update() {
@@ -75,6 +82,9 @@ public class MENU extends State implements  Methods{
         for (MenuButton m: menuButtons){
             if (isPlayerPressing(e,m)){
                 if (m.isMousePressed()){
+                    if (m.getState() == GameState.PLAYING) {
+                        resetGame(); // Reset game when starting new game
+                    }
                     m.Apply_GameState();
                 }
                 break;

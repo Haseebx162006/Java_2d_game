@@ -1,0 +1,416 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+
+package "main" {
+    class game {
+        -FPS: int
+        -UPS: int
+        -gameThread: Thread
+        -game_window: window_of_game
+        -Game_panel: game_panel
+        -playing: Playing
+        -Menue: MENU
+        +UpdateGame()
+        +RenderGraphicsGame(Graphics)
+        +getMenu(): MENU
+        +getPlaying(): Playing
+        +windowFocusLost()
+        +run()
+    }
+    
+    class game_panel {
+        -game: game
+        +paintComponent(Graphics)
+    }
+    
+    class window_of_game {
+        -game_panel: game_panel
+    }
+    
+    class Main {
+        +main(String[])
+    }
+}
+
+package "State" {
+    abstract class State {
+        #game1: game
+        +State(game)
+        +Getgame(): game
+        +isPlayerPressing(MouseEvent, MenuButton): boolean
+    }
+    
+    interface Methods {
+        +update()
+        +draw(Graphics)
+        +mouseClicked(MouseEvent)
+        +mousePressed(MouseEvent)
+        +mouseReleased(MouseEvent)
+        +mouseMoved(MouseEvent)
+        +KeyPressed(KeyEvent)
+        +keyReleased(KeyEvent)
+    }
+    
+    enum GameState {
+        MENU
+        PLAYING
+        OPTIONS
+        QUIT
+        +gameState: GameState
+    }
+    
+    class MENU extends State implements Methods {
+        -menuButtons: MenuButton[]
+        -bufferedImage: BufferedImage
+        -consoleBackground: BufferedImage
+        -menuX: int
+        -menuY: int
+        -menuWidth: int
+        -menuHeight: int
+        +LoadButtons()
+        +LoadBackground()
+        +resetGame()
+    }
+    
+    class Playing extends State implements Methods {
+        -background: BufferedImage
+        -bigCloud: BufferedImage
+        -smallCloud: BufferedImage
+        -cloudPositons: int[]
+        -player: Player
+        -levelManager: LevelManager
+        -paused: boolean
+        -pause: Pause
+        -enemyMangerclass: EnemyMangerclass
+        -levelxOffset: int
+        -showGameOver: boolean
+        -gameOverTimer: int
+        +getPlayer(): Player
+        +windowFocusLost()
+        +unpaused()
+        +resetGame()
+        -checkBorder()
+        -checkCombat()
+        -drawCloud(Graphics)
+        -drawHealthBar(Graphics)
+        -drawGameOver(Graphics)
+    }
+}
+
+package "Entities" {
+    abstract class Entity {
+        #x: float
+        #y: float
+        #box: Rectangle2D.Float
+        #width: int
+        #height: int
+        +Entity(float, float, int, int)
+        +getBox(): Rectangle2D.Float
+        +setBox(Rectangle2D.Float)
+        #CreateBox(float, float, float, float)
+        +drawBox(Graphics, int)
+    }
+    
+    class Player extends Entity {
+        -Animation: BufferedImage[][]
+        -XOffset: float
+        -YOffset: float
+        -Gravity: float
+        -Animation_tick: int
+        -Animation_index: int
+        -Animation_Speed: int
+        -Playermove: int
+        -Player_is_moving: boolean
+        -attacking: boolean
+        -up: boolean
+        -down: boolean
+        -right: boolean
+        -left: boolean
+        -jump: boolean
+        -playerSpeed: float
+        -canJump: boolean
+        -DataOfLevel: int[][]
+        -airSpeed: float
+        -jumpSpeed: float
+        -fallSpeed: float
+        -DuringAir: boolean
+        -maxHealth: int
+        -currentHealth: int
+        -isHit: boolean
+        -hitCooldown: int
+        -isDead: boolean
+        -deathAnimationTimer: int
+        +UpdatePlayer()
+        +RenderPlayer(Graphics, int)
+        +setAttack(boolean)
+        +takeDamage(int)
+        +getCurrentHealth(): int
+        +getMaxHealth(): int
+        +isAlive(): boolean
+        +isDead(): boolean
+        +isAttacking(): boolean
+        +getAttackHitbox(): Rectangle2D.Float
+        +reset()
+        -UpdatePosition()
+        -PlayerJumping()
+        -resetAirState()
+        -UpdatePostionX(float)
+        -setAnimation()
+        -ResetAnimation()
+        -updateAnimation()
+        -updateHitCooldown()
+        -updateDeathAnimation()
+        +isDeathAnimationComplete(): boolean
+        +LoadlevelData(int[][])
+        +setUp(boolean)
+        +setDown(boolean)
+        +setRight(boolean)
+        +setLeft(boolean)
+        +setJump(boolean)
+        +ResetDirection()
+    }
+    
+    abstract class Enemy extends Entity {
+        #Walk: float
+        #animationIndex: int
+        #State_of_enemy: int
+        #Type_of_enemy: int
+        #animationTick: int
+        #levelData: int[][]
+        #airSpeed: float
+        #inAir: boolean
+        #walkDir: int
+        #gravity: float
+        #fallSpeed: float
+        #maxHealth: int
+        #currentHealth: int
+        #isDead: boolean
+        #isHit: boolean
+        #hitCooldown: int
+        #player: Player
+        #visionRange: float
+        #attackRange: float
+        #attackCooldown: int
+        #animationSpeed: int
+        +loadLevelData(int[][])
+        +setPlayer(Player)
+        +takeDamage(int)
+        +isDead(): boolean
+        +getCurrentHealth(): int
+        +canSeePlayer(): boolean
+        +canAttackPlayer(): boolean
+        +getAttackHitbox(): Rectangle2D.Float
+        #isFloorAhead(float, int[][]): boolean
+        #ChangeDirection()
+        #updateAnimation()
+        -adjustPositionOnFloor(int[][])
+    }
+    
+    class Enemy1 extends Enemy {
+        +Enemy1(float, float)
+        +update()
+        -updatePosition()
+        -updateCombat()
+    }
+    
+    class EnemyMangerclass {
+        -playing: Playing
+        -Enemy_images: BufferedImage[][]
+        -crabbies: ArrayList<Enemy1>
+        +loadLevelData(int[][])
+        +setPlayer(Player)
+        +draw(Graphics, int)
+        +update()
+        +checkPlayerAttack(Rectangle2D.Float)
+        +checkEnemyAttacks(Player)
+        +resetEnemies()
+        -drawCrbbies(Graphics, int)
+        -LoadEnemyImg()
+        -addEnemies()
+    }
+}
+
+package "UI" {
+    class MenuButton {
+        -xPosition: int
+        -yPosition: int
+        -rowIndex: int
+        -index: int
+        -state: GameState
+        -bufferedImage: BufferedImage[]
+        -mouseOver: boolean
+        -mousePressed: boolean
+        -buttonBox: Rectangle
+        +draw(Graphics)
+        +update()
+        +Apply_GameState()
+        +getState(): GameState
+        +getButtonBox(): Rectangle
+        +reset()
+    }
+    
+    class Pause {
+        -musicButton: Sound_Button
+        -SFX: Sound_Button
+        -bufferedImage: BufferedImage
+        -menuButton: URMButtons
+        -replayButton: URMButtons
+        -unpauseButton: URMButtons
+        -volumeButton: VloumeButton
+        -playing: Playing
+        +update()
+        +draw(Graphics)
+        +mousePressed(MouseEvent)
+        +mouseReleased(MouseEvent)
+        +mouseMoved(MouseEvent)
+        +mouseDragged(MouseEvent)
+    }
+    
+    class Sound_Button extends PauseButton {
+        -muted: boolean
+        +setMuted(boolean)
+        +isMuted(): boolean
+    }
+    
+    class URMButtons extends PauseButton {
+        -rowIndex: int
+    }
+    
+    class VloumeButton extends PauseButton {
+        -sliderX: int
+        +changeX(int)
+    }
+    
+    abstract class PauseButton {
+        #x: int
+        #y: int
+        #width: int
+        #height: int
+        #bufferedImage: BufferedImage[]
+        #index: int
+        #mouseOver: boolean
+        #mousePressed: boolean
+        #box: Rectangle
+        +draw(Graphics)
+        +update()
+        +getBox(): Rectangle
+        +setMouseOver(boolean)
+        +setMousePressed(boolean)
+        +reset()
+    }
+}
+
+package "Function" {
+    class LoadSave {
+        +PlayerImgAddress: String
+        +OutsideImgLevelAddress: String
+        +LevelOneImageData: String
+        +ButtonImages: String
+        +Button_Background: String
+        +PAUSE: String
+        +SOUND_BUTTON: String
+        +URM_BUTTON: String
+        +VOLUME_BUTTON: String
+        +BACKGROUND_IMAGE: String
+        +BIG_CLOUD: String
+        +SMALL_CLOUD: String
+        +PAUSE_BACKGROUND: String
+        +ENEMY_1_PNG: String
+        +GetAtlas(String): BufferedImage
+        +getEnemyCrab(): ArrayList<Enemy1>
+        +GetLevelData(): int[][]
+    }
+    
+    class StaticMethodsforMovement {
+        +CanMove(float, float, float, float, int[][]): boolean
+        +IsSolid(float, float, int[][]): boolean
+        +PositionNextToWall(Rectangle2D.Float, float): float
+        +CheckUnderEnvironmentorAbove(Rectangle2D.Float, float): float
+        +OnFloor(Rectangle2D.Float, int[][]): boolean
+        +isFloor(Rectangle2D.Float, float, int[][]): boolean
+    }
+    
+    class features {
+        +background
+        +UI
+        +player_features
+        +PlayerDirectons
+    }
+}
+
+package "GameLevels" {
+    class LevelManager {
+        -Game: game
+        -LevelImg: BufferedImage[]
+        -levelone: Level
+        +update()
+        +draw(Graphics, int)
+        +getLevel(): Level
+        -importImgArray()
+    }
+    
+    class Level {
+        -lvldata: int[][]
+        +Level(int[][])
+        +getSpriteIndex(int, int): int
+        +getLvldata(): int[][]
+    }
+}
+
+package "Inputes_of_game" {
+    class keyboard_input {
+        +keyPressed(KeyEvent)
+        +keyReleased(KeyEvent)
+    }
+    
+    class mouse_input {
+        +mouseClicked(MouseEvent)
+        +mousePressed(MouseEvent)
+        +mouseReleased(MouseEvent)
+        +mouseMoved(MouseEvent)
+        +mouseDragged(MouseEvent)
+    }
+}
+
+' Relationships
+game "1" *-- "1" Playing : contains
+game "1" *-- "1" MENU : contains
+game "1" *-- "1" game_panel : contains
+game "1" *-- "1" window_of_game : contains
+
+Playing "1" *-- "1" Player : contains
+Playing "1" *-- "1" LevelManager : contains
+Playing "1" *-- "1" EnemyMangerclass : contains
+Playing "1" *-- "1" Pause : contains
+
+EnemyMangerclass "1" *-- "*" Enemy1 : manages
+Enemy1 --|> Enemy : extends
+Enemy "1" ..> "0..1" Player : references
+Player --|> Entity : extends
+Enemy --|> Entity : extends
+
+MENU "1" *-- "*" MenuButton : contains
+Pause "1" *-- "1" Sound_Button : contains
+Pause "1" *-- "1" URMButtons : contains
+Pause "1" *-- "1" VloumeButton : contains
+Sound_Button --|> PauseButton : extends
+URMButtons --|> PauseButton : extends
+VloumeButton --|> PauseButton : extends
+
+LevelManager "1" *-- "1" Level : contains
+
+State <|-- MENU : extends
+State <|-- Playing : extends
+Methods <|.. MENU : implements
+Methods <|.. Playing : implements
+
+LoadSave ..> Enemy1 : creates
+LoadSave ..> Level : creates
+LoadSave ..> BufferedImage : loads
+
+StaticMethodsforMovement ..> Entity : uses
+StaticMethodsforMovement ..> Level : uses
+
+@enduml
+
