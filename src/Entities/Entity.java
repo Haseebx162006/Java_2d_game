@@ -29,7 +29,7 @@ public abstract class Entity {
     }
 
     protected void CreateBox(float x, float y, float width, float height) {
-        box= new Rectangle2D.Float(x, y,width,height);  // have done typcasting here
+        box= new Rectangle2D.Float(x, y,width,height);  //
     }
     public void drawBox(Graphics g, int padding){
         Graphics2D g2 = (Graphics2D) g.create();

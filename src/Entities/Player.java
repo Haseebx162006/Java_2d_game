@@ -30,18 +30,18 @@ public class Player extends  Entity{
     private boolean DuringAir=false;
     
     // Health system
-    private int maxHealth = 100;
+    private int maxHealth = 125;
     private int currentHealth = maxHealth;
     private boolean isHit = false;
     private int hitCooldown = 0;
-    private static final int HIT_COOLDOWN_TIME = 60; // frames of invincibility after being hit
+    private static final int HIT_COOLDOWN_TIME = 90; // frames of invincibility after being hit
     private boolean isDead = false;
     private int deathAnimationTimer = 0;
-    private static final int DEATH_ANIMATION_DURATION = 120; // frames for death animation
+    private static final int DEATH_ANIMATION_DURATION = 90; // frames for death animation
     public Player(float x, float y,int width,int height) {
         super(x, y,width,height);
         load_Animations();
-        CreateBox(x,y,game.SCALE*28,game.SCALE*28);
+        CreateBox(x,y,game.SCALE*22,game.SCALE*28);
         XOffset = (width - box.width) / 2f;
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
     }
@@ -74,7 +74,8 @@ public class Player extends  Entity{
     }
     
     // Health methods
-    public void takeDamage(int damage) {
+    public void takeDamage(float damage) {
+        damage*=0.5f;
         if (isDead || hitCooldown > 0) {
             return; // Can't take damage if dead or in cooldown
         }
@@ -107,7 +108,6 @@ public class Player extends  Entity{
     }
     
     public void reset() {
-        // Reset player for replay
         currentHealth = maxHealth;
         isDead = false;
         isHit = false;
@@ -126,13 +126,12 @@ public class Player extends  Entity{
     public boolean isAttacking() {
         return attacking;
     }
-    
-    // Get attack hitbox (area in front of player when attacking)
+
     public Rectangle2D.Float getAttackHitbox() {
         if (!attacking) {
             return null;
         }
-        float attackWidth = 40 * game.SCALE;
+        float attackWidth = 25 * game.SCALE;
         float attackHeight = box.height;
         float attackX;
         
@@ -330,6 +329,7 @@ public class Player extends  Entity{
     }
 
     public void setJump(boolean jump) {
+        if (attacking) return;
         if (jump && !DuringAir){
             this.jump=true;
         }

@@ -8,12 +8,11 @@ import static Function.features.UI.Enemies.*;
 public class Enemy1 extends Enemy{
     public Enemy1(float x, float y) {
         super(x, y,ENEMY1_WIDTH,ENEMY1_HEIGHT,ENEMY_1);
-        CreateBox(x,y,22,19);
     }
     public void update(){
         if (isDead) {
             updateAnimation();
-            return; // Don't update position if dead
+            return;
         }
         
         if (levelData != null) {
@@ -24,7 +23,7 @@ public class Enemy1 extends Enemy{
     }
     
     private void updateCombat() {
-        // Update attack cooldown
+
         if (attackCooldown > 0) {
             attackCooldown--;
         }
@@ -50,7 +49,6 @@ public class Enemy1 extends Enemy{
         }
 
         if (inAir) {
-            // Apply gravity when in air
             float newY = box.y + airSpeed;
             if (CanMove(box.x, newY, box.width, box.height, levelData)) {
                 box.y = newY;
@@ -65,24 +63,20 @@ public class Enemy1 extends Enemy{
                     airSpeed = 0;
                     inAir = false;
                 } else {
-                    // Hit ceiling
                     airSpeed = fallSpeed;
                 }
             }
         } else {
-            // Check if enemy can see player
             if (canSeePlayer() && !isDead) {
-                // Face player and move towards them
+
                 float playerX = player.getBox().x;
                 float enemyX = box.x;
-                
+
                 if (playerX < enemyX) {
                     walkDir = LEFT;
                 } else {
                     walkDir = RIGHT;
                 }
-                
-                // Check if can attack
                 if (canAttackPlayer()) {
                     State_of_enemy = ATTACK;
                     attackCooldown = ATTACK_COOLDOWN_TIME;
@@ -97,7 +91,7 @@ public class Enemy1 extends Enemy{
                     }
                 }
             } else {
-                // Normal patrolling when player not in sight
+
                 if (State_of_enemy == ATTACK && attackCooldown == 0) {
                     State_of_enemy = RUNNING;
                 }
@@ -116,7 +110,6 @@ public class Enemy1 extends Enemy{
                                 Speed=Walk;
                             }
 
-                            // Check if can move horizontally and if there's floor ahead
                             float newX = box.x + Speed;
                             boolean canMoveHorizontally = CanMove(newX, box.y, box.width, box.height, levelData);
                             boolean floorAhead = isFloorAhead(Speed, levelData);
@@ -124,7 +117,7 @@ public class Enemy1 extends Enemy{
                             if (canMoveHorizontally && floorAhead) {
                                 box.x = newX;
                             } else {
-                                // Can't move (wall collision) or no floor ahead (cliff) - change direction
+
                                 ChangeDirection();
                             }
                         }

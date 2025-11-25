@@ -68,7 +68,7 @@ public class EnemyMangerclass {
     public void checkPlayerAttack(Rectangle2D.Float attackBox) {
         for (Enemy1 enemy : crabbies) {
             if (!enemy.isDead() && attackBox.intersects(enemy.getBox())) {
-                enemy.takeDamage(10); // Player deals 10 damage
+                enemy.takeDamage(20); // Player deals 10 damage
             }
         }
     }

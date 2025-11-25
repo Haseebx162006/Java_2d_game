@@ -49,7 +49,7 @@ public  class features {
             public static  final int DEAD=4;
 
             public static final int ENEMY1_WIDTH_DEFAULT=72;
-            public static final int ENEMY1_HEIGHT_DEFAULT=32;
+            public static final int ENEMY1_HEIGHT_DEFAULT=30;
 
             public static final int ENEMY1_WIDTH=(int)(ENEMY1_WIDTH_DEFAULT*game.SCALE);
             public static final int ENEMY1_HEIGHT=(int)(ENEMY1_HEIGHT_DEFAULT*game.SCALE);
