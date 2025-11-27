@@ -4,6 +4,7 @@ import Entities.EnemyMangerclass;
 import Entities.Player;
 import Function.LoadSave;
 import GameLevels.LevelManager;
+import UI.CompleteLevelBanner;
 import UI.Pause;
 import main.game;
 
@@ -19,6 +20,7 @@ import static Function.features.background.*;
 public class Playing extends State implements Methods{
     private BufferedImage background,bigCloud,smallCloud;
     int[] cloudPositons;
+    private boolean level_Complete;
     private Player player;
     private LevelManager levelManager;
     private boolean paused=false;
@@ -28,10 +30,10 @@ public class Playing extends State implements Methods{
     private int levelxOffset;
     private int left_border=(int)(0.2*game.GAME_WIDTH);
     private int right_border=(int)(0.8*game.GAME_WIDTH);
-    private int levelTilesw= LoadSave.GetLevelData()[0].length;
-    private int maxTiles=levelTilesw-game.TILE_WIDTH;
-    private int maxLevelOffset=maxTiles*game.TILE_SIZE;
-    
+    private int maxLevelOffset;
+    public CompleteLevelBanner completeLevelBanner;
+
+
     // Game Over state
     private boolean showGameOver = false;
     private int gameOverTimer = 0;
@@ -46,7 +48,24 @@ public class Playing extends State implements Methods{
         for (int i = 0; i < cloudPositons.length; i++) {
             cloudPositons[i]= (int)(90*game.SCALE)+random.nextInt((int)(150*game.SCALE));
         }
+        calculateLevelOffset();
+        loadFirstlevel();
     }
+    public void LoadNextLevel(){
+        resetGame();
+        levelManager.loadnextLevel();
+    }
+    private void loadFirstlevel() {
+        level_Complete = false;
+        enemyMangerclass.resetEnemies();
+        enemyMangerclass.addEnemies(levelManager.getLevel());
+        enemyMangerclass.setPlayer(player);
+    }
+
+    private void calculateLevelOffset() {
+        maxLevelOffset=levelManager.getLevel().getleveloffset();
+    }
+
     private void initClasses(){
         levelManager= new LevelManager(game1);
         enemyMangerclass= new EnemyMangerclass(this);
@@ -55,23 +74,23 @@ public class Playing extends State implements Methods{
         enemyMangerclass.loadLevelData(levelManager.getLevel().getLvldata());
         enemyMangerclass.setPlayer(player); // Pass player reference to enemies
         pause= new Pause(this);
+        completeLevelBanner= new CompleteLevelBanner(this);
     }
-    
+
     public void resetGame() {
         // Reset game state for replay
         showGameOver = false;
         gameOverTimer = 0;
         levelxOffset = 0;
         paused = false;
-        
-        // Reset player
+
+        level_Complete=false;
         player.reset();
         player.LoadlevelData(levelManager.getLevel().getLvldata());
-        
-        // Reset enemies
-        enemyMangerclass.resetEnemies();
-        enemyMangerclass.loadLevelData(levelManager.getLevel().getLvldata());
-        enemyMangerclass.setPlayer(player);
+
+        // Reset enemies - MUST RE-ADD THEM!
+        enemyMangerclass.resetEnemies(); // Clears the list
+        enemyMangerclass.addEnemies(levelManager.getLevel()); // Re-adds enemies from level data
     }
     public Player getPlayer(){
         return player;
@@ -80,7 +99,9 @@ public class Playing extends State implements Methods{
     public void windowFocusLost() {
         player.ResetDirection();
     }
-
+    public EnemyMangerclass getEnemyMangerclass(){
+        return enemyMangerclass;
+    }
     @Override
     public void update() {
         if (showGameOver) {
@@ -93,15 +114,19 @@ public class Playing extends State implements Methods{
             }
             return;
         }
-        
+
         if (player.isDead()) {
             if (player.isDeathAnimationComplete() && !showGameOver) {
                 showGameOver = true;
                 gameOverTimer = 0;
             }
         }
-        
-        if (!paused && !player.isDead()){
+        if (paused){
+            pause.update();
+        } else if (level_Complete) {
+            completeLevelBanner.update();
+        }
+        else if (!paused && !player.isDead() && !level_Complete){
             levelManager.update();
             player.UpdatePlayer();
             checkBorder();
@@ -115,12 +140,12 @@ public class Playing extends State implements Methods{
             player.UpdatePlayer();
         }
     }
-    
+
     private void checkCombat() {
         if (!player.isAlive()) {
             return; // Player is dead, no combat
         }
-        
+
         // Check player attacks on enemies
         if (player.isAttacking()) {
             Rectangle2D.Float playerAttackBox = player.getAttackHitbox();
@@ -128,7 +153,7 @@ public class Playing extends State implements Methods{
                 enemyMangerclass.checkPlayerAttack(playerAttackBox);
             }
         }
-        
+
         // Check enemy attacks on player
         enemyMangerclass.checkEnemyAttacks(player);
     }
@@ -156,20 +181,22 @@ public class Playing extends State implements Methods{
         levelManager.draw(g,levelxOffset);
         player.RenderPlayer(g,levelxOffset);
         enemyMangerclass.draw(g,levelxOffset);
+        g.setColor(Color.RED);
         drawHealthBar(g); // Draw player health bar
-        
         if (showGameOver) {
             drawGameOver(g);
         }
-        
         if (paused) pause.draw(g);
+        else if (level_Complete) {
+            completeLevelBanner.draw(g);
+        }
     }
-    
+
     private void drawGameOver(Graphics g) {
         // Semi-transparent overlay
         g.setColor(new Color(0, 0, 0, 180));
         g.fillRect(0, 0, game.GAME_WIDTH, game.GAME_HEIGHT);
-        
+
         // Game Over text
         g.setColor(Color.RED);
         g.setFont(new Font("Arial", Font.BOLD, 48));
@@ -178,7 +205,7 @@ public class Playing extends State implements Methods{
         int textX = (game.GAME_WIDTH - fm.stringWidth(gameOverText)) / 2;
         int textY = game.GAME_HEIGHT / 2 - 50;
         g.drawString(gameOverText, textX, textY);
-        
+
         // Return to menu message
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 24));
@@ -188,26 +215,26 @@ public class Playing extends State implements Methods{
         int menuY = game.GAME_HEIGHT / 2 + 20;
         g.drawString(menuText, menuX, menuY);
     }
-    
+
     private void drawHealthBar(Graphics g) {
         int barWidth = 200;
         int barHeight = 20;
         int x = 10;
         int y = 10;
-        
+
         // Background (red)
         g.setColor(Color.RED);
         g.fillRect(x, y, barWidth, barHeight);
-        
+
         // Health (green)
         int healthWidth = (int)((player.getCurrentHealth() / (float)player.getMaxHealth()) * barWidth);
         g.setColor(Color.GREEN);
         g.fillRect(x, y, healthWidth, barHeight);
-        
+
         // Border
         g.setColor(Color.WHITE);
         g.drawRect(x, y, barWidth, barHeight);
-        
+
         // Health text
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 14));
@@ -236,6 +263,8 @@ public class Playing extends State implements Methods{
     public void mousePressed(MouseEvent e) {
         if (paused){
             pause.mousePressed(e);
+        } else if (level_Complete) {
+            completeLevelBanner.mousePressed(e);
         }
         if (e.getButton()==MouseEvent.BUTTON1){
             player.setAttack(true);
@@ -243,12 +272,16 @@ public class Playing extends State implements Methods{
         if (e.getButton()==MouseEvent.BUTTON3){
             player.setJump(true);
         }
+
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         if (paused){
             pause.mouseReleased(e);
+        }
+        else if (level_Complete) {
+            completeLevelBanner.mouseReleased(e);
         }
         if (e.getButton() == MouseEvent.BUTTON1) {
             player.setAttack(false);
@@ -270,8 +303,13 @@ public class Playing extends State implements Methods{
         if (paused){
             pause.mouseMoved(e);
         }
+        else if (level_Complete) {
+            completeLevelBanner.mouseMoved(e);
+        }
     }
-
+    public void setLevelOffset(int levelOffset){
+        this.maxLevelOffset=levelOffset;
+    }
     @Override
     public void KeyPressed(KeyEvent e) {
         switch (e.getKeyCode()){
@@ -304,5 +342,10 @@ public class Playing extends State implements Methods{
                 break;
         }
     }
+
+    public void setLevelCompleted(boolean levelComppleted) {
+        this.level_Complete=levelComppleted;
+
     }
+}
 

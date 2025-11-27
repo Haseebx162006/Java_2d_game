@@ -8,6 +8,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import static Function.features.player_features.*;
 import static Function.StaticMethodsforMovement.*;
+import static Function.features.PlayerDirectons.*;
 
 public class Player extends  Entity{
     // I create a 2D array to store the sprites png and performing actions
@@ -30,18 +31,27 @@ public class Player extends  Entity{
     private boolean DuringAir=false;
     
     // Health system
-    private int maxHealth = 125;
+    private int maxHealth = 100;
     private int currentHealth = maxHealth;
     private boolean isHit = false;
     private int hitCooldown = 0;
-    private static final int HIT_COOLDOWN_TIME = 90; // frames of invincibility after being hit
+    private static final int HIT_COOLDOWN_TIME = 60; // frames of invincibility after being hit
     private boolean isDead = false;
     private int deathAnimationTimer = 0;
-    private static final int DEATH_ANIMATION_DURATION = 90; // frames for death animation
+    private static final int DEATH_ANIMATION_DURATION = 120; // frames for death animation
+    
+    // Combat system
+    private boolean attackHitProcessed = false; // Track if this attack has already dealt damage
+    private int attackDirection = RIGHT; // Track which direction player is facing for attack
+    private static final int ATTACK_ACTIVE_FRAME_START = 1; // Attack hitbox is active from frame 1
+    private static final int ATTACK_ACTIVE_FRAME_END = 2; // Attack hitbox is active until frame 2 (of 3 total)
+    private boolean invulnerable = false;
+    private int invulnerabilityTimer = 0;
+    private static final int INVULNERABILITY_DURATION = 60; // 1 second at 60 FPS
     public Player(float x, float y,int width,int height) {
         super(x, y,width,height);
         load_Animations();
-        CreateBox(x,y,game.SCALE*22,game.SCALE*28);
+        CreateBox(x,y,game.SCALE*28,game.SCALE*28);
         XOffset = (width - box.width) / 2f;
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
     }
@@ -50,10 +60,34 @@ public class Player extends  Entity{
             updateDeathAnimation();
             return;
         }
+        updateCombat();
         UpdatePosition();
         updateAnimation();
         setAnimation();
         updateHitCooldown();
+        updateInvulnerability();
+    }
+    private void updateInvulnerability() {
+        if (invulnerable) {
+            invulnerabilityTimer--;
+            if (invulnerabilityTimer <= 0) {
+                invulnerable = false;
+            }
+        }
+    }
+    private void updateCombat() {
+        // Reset attack hit tracking when attack animation starts (first frame)
+        if (attacking && Playermove == ATTACK && Animation_index == 0 && Animation_tick == 0) {
+            attackHitProcessed = false;
+        }
+
+        // Store attack direction when attack is first triggered (before animation starts)
+        // This is handled in setAttack() method
+
+        // Reset attack hit tracking when attack ends
+        if (!attacking && Playermove != ATTACK) {
+            attackHitProcessed = false;
+        }
     }
     
     private void updateDeathAnimation() {
@@ -74,21 +108,21 @@ public class Player extends  Entity{
     }
     
     // Health methods
-    public void takeDamage(float damage) {
-        damage*=0.5f;
-        if (isDead || hitCooldown > 0) {
-            return; // Can't take damage if dead or in cooldown
+    public void takeDamage(int damage) {
+        if (invulnerable || isDead()) {
+            return; // Can't take damage while invulnerable or dead
         }
+
         currentHealth -= damage;
+        System.out.println("Player took " + damage + " damage. Health: " + currentHealth);
+
         if (currentHealth <= 0) {
             currentHealth = 0;
-            isDead = true;
-            deathAnimationTimer = 0;
-            Playermove = GROUND; // Play death animation
-        } else {
-            isHit = true;
-            hitCooldown = HIT_COOLDOWN_TIME;
         }
+
+        // Activate invulnerability
+        invulnerable = true;
+        invulnerabilityTimer = INVULNERABILITY_DURATION;
     }
     
     public int getCurrentHealth() {
@@ -108,12 +142,15 @@ public class Player extends  Entity{
     }
     
     public void reset() {
+        // Reset player for replay
         currentHealth = maxHealth;
         isDead = false;
         isHit = false;
         hitCooldown = 0;
         deathAnimationTimer = 0;
         attacking = false;
+        attackHitProcessed = false;
+        attackDirection = RIGHT;
         Playermove = STANDING;
         ResetAnimation();
         // Reset position
@@ -124,28 +161,41 @@ public class Player extends  Entity{
     }
     
     public boolean isAttacking() {
-        return attacking;
+        return attacking && Playermove == ATTACK;
     }
-
+    
+    // Get attack hitbox (area in front of player when attacking)
+    // Only active during specific frames of the attack animation
     public Rectangle2D.Float getAttackHitbox() {
-        if (!attacking) {
+        if (!attacking || Playermove != ATTACK) {
             return null;
         }
-        float attackWidth = 25 * game.SCALE;
+        
+        // Attack hitbox is only active during frames 1-2 (middle frames of 3-frame attack)
+        if (Animation_index < ATTACK_ACTIVE_FRAME_START || Animation_index > ATTACK_ACTIVE_FRAME_END) {
+            return null;
+        }
+        
+        float attackWidth = 40 * game.SCALE;
         float attackHeight = box.height;
         float attackX;
         
-        // Attack hitbox extends in the direction player is facing
-        if (left) {
+        // Attack hitbox extends in the direction player was facing when attack started
+        if (attackDirection == LEFT) {
             attackX = box.x - attackWidth;
-        } else if (right) {
-            attackX = box.x + box.width;
         } else {
-            // Default to right if no direction
             attackX = box.x + box.width;
         }
         
         return new Rectangle2D.Float(attackX, box.y, attackWidth, attackHeight);
+    }
+    
+    public boolean hasAttackHitProcessed() {
+        return attackHitProcessed;
+    }
+    
+    public void setAttackHitProcessed(boolean processed) {
+        attackHitProcessed = processed;
     }
     public void RenderPlayer(Graphics g, int levelOff) {
 
@@ -157,13 +207,54 @@ public class Player extends  Entity{
         }
     }
     public void setAttack(boolean attacking){
-        this.attacking=attacking;
+        // Only allow starting attack if not already attacking
+        if (attacking && !this.attacking) {
+            this.attacking = true;
+            attackHitProcessed = false;
+            // Store attack direction when attack starts
+            if (left) {
+                attackDirection = LEFT;
+            } else if (right) {
+                attackDirection = RIGHT;
+            }
+            // If no direction, keep previous direction (defaults to RIGHT)
+        } else if (!attacking) {
+            // Allow stopping attack
+            this.attacking = false;
+        }
     }
     private void UpdatePosition() {
         Player_is_moving=false;
-        if (jump && !DuringAir){
+        
+        // Prevent jump during attack animation
+        if (jump && !DuringAir && !attacking){
             PlayerJumping();
         }
+        
+        // Lock movement during attack animation
+        if (attacking && Playermove == ATTACK) {
+            // Only allow vertical movement (gravity/jumping) during attack, not horizontal
+            if (DuringAir) {
+                // Apply gravity during attack if in air
+                float newY = box.y + airSpeed;
+                if (CanMove(box.x, newY, box.width, box.height, DataOfLevel)) {
+                    box.y = newY;
+                    airSpeed += Gravity;
+                } else {
+                    float correctedY = CheckUnderEnvironmentorAbove(box, airSpeed);
+                    if (correctedY >= 0 && correctedY < game.GAME_HEIGHT) {
+                        box.y = correctedY;
+                    }
+                    if (airSpeed > 0) {
+                        resetAirState();
+                    } else {
+                        airSpeed = fallSpeed;
+                    }
+                }
+            }
+            return; // Don't allow horizontal movement during attack
+        }
+        
         if (!left && !right && !DuringAir){
             return;
         }
@@ -329,9 +420,11 @@ public class Player extends  Entity{
     }
 
     public void setJump(boolean jump) {
-        if (attacking) return;
-        if (jump && !DuringAir){
+        // Completely separate from attack - never allow jump during attack
+        if (jump && !DuringAir && !attacking){
             this.jump=true;
+        } else if (!jump) {
+            this.jump=false;
         }
     }
     public void ResetDirection() {

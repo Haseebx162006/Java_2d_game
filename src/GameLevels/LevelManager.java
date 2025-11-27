@@ -1,19 +1,30 @@
 package GameLevels;
 
 import Function.LoadSave;
+import State.GameState;
 import main.game;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class LevelManager {
     private game Game;
     private BufferedImage[] LevelImg;
-    private Level levelone;
+    private ArrayList<Level> levels;
+    private int Level_Index;
     public LevelManager(game Game){
         this.Game=Game;
-        importImgArray(); // this will load the image in an array
-        levelone= new Level(LoadSave.GetLevelData());
+        importImgArray();
+        levels=new ArrayList<>();
+        buildAllLevels();
+    }
+
+    private void buildAllLevels() {
+        BufferedImage[] allLevels=LoadSave.getAll();
+        for (BufferedImage img : allLevels){
+            levels.add(new Level(img));
+        }
     }
 
     private void importImgArray() {
@@ -32,18 +43,32 @@ public class LevelManager {
 
     }
     public void draw(Graphics g, int leveloff){
-        int[][] levelData = levelone.getLvldata();
-        int levelWidth = levelData[0].length;
-        int levelHeight = levelData.length;
-        for (int i = 0; i < levelHeight; i++) {
-            for (int j = 0; j < levelWidth; j++) {
-                int index=levelone.getSpriteIndex(j,i);
-                g.drawImage(LevelImg[index],j*game.TILE_SIZE-leveloff,i*game.TILE_SIZE,game.TILE_SIZE,game.TILE_SIZE,null);
+        for (int i = 0; i < game.TILE_HEIGHT; i++) {
+            for (int j = 0; j < levels.get(Level_Index).getLvldata()[0].length; j++) {
+                int index=levels.get(Level_Index).getSpriteIndex(j,i);
+                g.drawImage(LevelImg[index],game.TILE_SIZE*j-leveloff,i*game.TILE_SIZE,game.TILE_SIZE,game.TILE_SIZE,null);
             }
         }
 
     }
     public Level getLevel(){
-        return levelone;
+        return levels.get(Level_Index);
+    }
+    public int getTotalLevelsnumber(){
+        return levels.size();
+    }
+
+    public void loadnextLevel() {
+        Level_Index++;
+        if (Level_Index>=levels.size()){
+            Level_Index=0;
+            System.out.println("No more Levels Game Completed");
+            GameState.gameState=GameState.MENU;
+        }
+        Level newLevel=levels.get(Level_Index);
+        Game.getPlaying().getEnemyMangerclass().addEnemies(newLevel);
+        Game.getPlaying().getPlayer().LoadlevelData(newLevel.getLvldata());
+        Game.getPlaying().setLevelOffset(newLevel.getleveloffset());
+
     }
 }

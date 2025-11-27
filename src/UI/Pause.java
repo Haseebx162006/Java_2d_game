@@ -1,7 +1,6 @@
 package UI;
 
 import Function.LoadSave;
-import Function.features;
 import State.GameState;
 import State.Playing;
 import main.game;

@@ -1,9 +1,14 @@
 package Function;
+import Entities.Enemy1;
 import main.game;
 
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class StaticMethodsforMovement {
+
     public static boolean CanMove(float x, float y, float width,float height, int[][] levelData){
         if (!IsSolid(x,y,levelData)) // top left ko check karne ke leye
             if(!IsSolid(x+width,y+height,levelData)) //bottom right
@@ -25,7 +30,7 @@ public class StaticMethodsforMovement {
         }
         float xi= x/game.TILE_SIZE;
         float yi= y/game.TILE_SIZE;
-        
+
         // Bounds checking to prevent array index out of bounds
         int tileX = (int) xi;
         int tileY = (int) yi;
@@ -72,6 +77,33 @@ public class StaticMethodsforMovement {
            if (!IsSolid(box.x+box.width,box.y+box.height+1,levelData))
                return false;
         return true;
+    }
+    public static int[][] GetLevelData(BufferedImage img){
+        int[][] lvldata= new int[img.getHeight()][img.getWidth()];
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color= new Color(img.getRGB(j,i));
+                int value=color.getRed();
+                if (value>=48){
+                    value=0;
+                }
+                lvldata[i][j]=value;
+            }
+        }
+        return lvldata;
+    }
+    public static ArrayList<Enemy1> getEnemyCrab(BufferedImage img) {
+        ArrayList<Enemy1> list = new ArrayList<>();
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i));
+                int value = color.getGreen();
+                if (value == features.UI.Enemies.ENEMY_1) {
+                    list.add(new Enemy1(j * game.TILE_SIZE, i * game.TILE_SIZE));
+                }
+            }
+        }
+        return list;
     }
 
 }
