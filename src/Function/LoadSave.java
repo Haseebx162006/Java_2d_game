@@ -31,6 +31,7 @@ public class LoadSave {
     public static final String LOAD_COMPLETE_LEVEL="completed_sprite.png";
     public static final String Potion="potions_sprites.png";
     public static final String OBJECT="objects_sprites.png";
+    public static final String TRAPS_1="traps.png";
    public static BufferedImage GetAtlas(String fileName){
         BufferedImage img=null;
         InputStream is = LoadSave.class.getResourceAsStream("/"+fileName);

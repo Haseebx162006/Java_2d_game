@@ -1,7 +1,9 @@
 package GameLevels;
 
 import Entities.Enemy1;
+import Function.LoadSave;
 import Function.StaticMethodsforMovement;
+import Rewards.Arrow;
 import Rewards.Container;
 import Rewards.Potions;
 import main.game;
@@ -18,6 +20,7 @@ public class Level {
     private ArrayList<Enemy1> enemy1;
     private ArrayList<Potions> potions;
     private ArrayList<Container> containers;
+    private ArrayList<Arrow> arrows;
 
     private int lvlTiles_Width;
     private int maxTilesoff;
@@ -28,8 +31,13 @@ public class Level {
         CreateLevel();
         CreateEnemies();
         createPotions();
+        createArrows();
         createContainers();
         CalculateOffsets();
+    }
+
+    private void createArrows() {
+        arrows= StaticMethodsforMovement.getSpikes(img);
     }
 
     private void createContainers() {
@@ -52,6 +60,14 @@ public class Level {
         lvlTiles_Width=img.getWidth();
         maxLevelOffsetX=lvlTiles_Width- game.TILE_WIDTH;
         maxLevelOffsetX=game.TILE_SIZE*maxLevelOffsetX;
+    }
+
+    public ArrayList<Arrow> getArrows() {
+        return arrows;
+    }
+
+    public void setArrows(ArrayList<Arrow> arrows) {
+        this.arrows = arrows;
     }
 
     private void CreateEnemies() {

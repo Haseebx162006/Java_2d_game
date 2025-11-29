@@ -1,5 +1,6 @@
 package Function;
 import Entities.Enemy1;
+import Rewards.Arrow;
 import Rewards.Potions;
 import Rewards.Container;
 import main.game;
@@ -145,4 +146,17 @@ public class StaticMethodsforMovement {
         return list;
     }
 
+    public static ArrayList<Arrow> getSpikes(BufferedImage img) {
+        ArrayList<Arrow> list = new ArrayList<>();
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i));
+                int value = color.getBlue();
+                if (value == SPIKE) {
+                    list.add(new Arrow(j*game.TILE_SIZE,i*game.TILE_SIZE,SPIKE));
+                }
+            }
+        }
+        return list;
+    }
 }

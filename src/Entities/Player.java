@@ -74,11 +74,16 @@ public class Player extends  Entity{
         UpdatePosition();
         playing.checkObjectHit(box);
             checkPotiontouched();
+            checkArrowChecked();
         updateCombat();
         updateAnimation();
         setAnimation();
         updateHitCooldown();
         updateInvulnerability();
+    }
+
+    private void checkArrowChecked() {
+        playing.checkTrapHit(this);
     }
 
     private void checkPotiontouched() {
@@ -88,7 +93,10 @@ public class Player extends  Entity{
     public void changePower(int value) {
         System.out.println("Added power!");
     }
-
+    public void KillPlayer(){
+        this.currentHealth=0;
+        isDead=true;
+    }
     private void updateInvulnerability() {
         if (invulnerable) {
             invulnerabilityTimer--;

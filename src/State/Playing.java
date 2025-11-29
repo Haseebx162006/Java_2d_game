@@ -342,6 +342,10 @@ public class Playing extends State implements Methods{
         return objectsManager;
     }
 
+    public LevelManager getLevelManager() {
+        return levelManager;
+    }
+
     @Override
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()){
@@ -364,6 +368,11 @@ public class Playing extends State implements Methods{
 
     public void checkObjectHit(Rectangle2D.Float box) {
         objectsManager.checkObjectHit(box);
+    }
+
+    public void checkTrapHit(Player p
+    ) {
+        objectsManager.checkTrapHit(p);
     }
 }
 

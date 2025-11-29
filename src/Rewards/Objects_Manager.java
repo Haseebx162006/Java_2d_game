@@ -1,5 +1,6 @@
 package Rewards;
 
+import Entities.Player;
 import Function.LoadSave;
 import Function.features;
 import GameLevels.Level;
@@ -10,14 +11,17 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Spliterator;
 
 import static Function.features.Objects.*;
 
 public class Objects_Manager {
     private BufferedImage[][] potionImgs,containerImgs;
+    private BufferedImage arrowImage;
     private Playing playing;
     private ArrayList<Potions> potions;
     private ArrayList<Container> containers;
+    private ArrayList<Arrow> arrows;
     public Objects_Manager(Playing playing){
         this.playing=playing;
         LoadImgs();
@@ -39,7 +43,11 @@ public class Objects_Manager {
         for (int j = 0; j < containerImgs.length; j++)
             for (int i = 0; i < containerImgs[j].length; i++)
                 containerImgs[j][i] = containerSprite.getSubimage(40 * i, 30 * j, 40, 30);
+
+
+        arrowImage= LoadSave.GetAtlas(LoadSave.TRAPS_1);
     }
+
     public void checkTouch(Rectangle2D.Float box){
         for (Potions p: potions)
             if (p.isActive()){
@@ -49,7 +57,15 @@ public class Objects_Manager {
                 }
             }
     }
+    public void checkTrap(Player s){
+        for (Arrow a : arrows){
+            if (a.getBox().intersects(s.getBox())){
+              s.KillPlayer();
+            }
 
+        }
+
+    }
     private void ApplyEffects(Potions p) {
         if (p.getObjType() == RED_POTION)
             playing.getPlayer().changeHealth(RED_POTION_VALUE);
@@ -69,9 +85,13 @@ public class Objects_Manager {
                 }
             }
     }
-    public void loadObjects(Level newLevel) {
-        potions = newLevel.getPotions();
-        containers = newLevel.getContainers();
+    public void checkTrapHit(Player p){
+        for (Arrow a: arrows){
+            if (a.getBox().intersects(p.getBox())){
+                p.KillPlayer();
+            }
+        }
+
     }
     public void update(){
         for (Potions p : potions)
@@ -85,7 +105,16 @@ public class Objects_Manager {
     public void draw(Graphics g, int xLvlOffset) {
         drawPotions(g,xLvlOffset);
         drawContainers(g, xLvlOffset);
+
+        drawTrap1(g,xLvlOffset);
     }
+
+    private void drawTrap1(Graphics g, int xLvlOffset) {
+        for (Arrow a : arrows) {
+            g.drawImage(arrowImage,(int)(a.getBox().x-xLvlOffset),(int)(a.getBox().y-a.getyOffset()),SPIKE_WIDTH,SPIKE_WIDTH,null);
+        }
+    }
+
     private void drawPotions(Graphics g, int xLvlOffset) {
         for (Potions p : potions)
             if (p.isActive()) {
@@ -107,12 +136,15 @@ public class Objects_Manager {
             }
     }
 
+
     public void loadObject(Level newLevel) {
-        potions=newLevel.getPotions();
-        containers=newLevel.getContainers();
+        potions=new ArrayList<>(newLevel.getPotions());
+        containers=new ArrayList<>(newLevel.getContainers());
+        arrows= newLevel.getArrows();
     }
 
     public void resetAllObjects() {
+        loadObject(playing.getLevelManager().getLevel());
         for(Potions p: potions){
             p.reset();
         }
