@@ -72,7 +72,7 @@ public class EnemyMangerclass {
             }
         }
     }
-    public void update(){
+    public void update(int[][] lvldata, Player player){
         boolean anyEnemyAlive = false;
 
         for (Enemy1 c: crabbies){

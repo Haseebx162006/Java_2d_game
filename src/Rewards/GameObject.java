@@ -123,7 +123,7 @@ public class GameObject {
         AnimationIndex=0;
         AnimationTick=0;
         Active=true;
-        if(objType==BARREL || objType ==BOX)
+        if(objType==BARREL || objType ==BOX||objType ==CANNON_LEFT|| objType==CANNON_RIGHT)
             Animation=false;
         else Animation=true;
     }

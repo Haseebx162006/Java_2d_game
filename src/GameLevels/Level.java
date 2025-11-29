@@ -4,6 +4,7 @@ import Entities.Enemy1;
 import Function.LoadSave;
 import Function.StaticMethodsforMovement;
 import Rewards.Arrow;
+import Rewards.CannonGun;
 import Rewards.Container;
 import Rewards.Potions;
 import main.game;
@@ -21,6 +22,7 @@ public class Level {
     private ArrayList<Potions> potions;
     private ArrayList<Container> containers;
     private ArrayList<Arrow> arrows;
+    private ArrayList<CannonGun> cannonGuns;
 
     private int lvlTiles_Width;
     private int maxTilesoff;
@@ -33,7 +35,12 @@ public class Level {
         createPotions();
         createArrows();
         createContainers();
+        createCannons();
         CalculateOffsets();
+    }
+
+    private void createCannons() {
+        cannonGuns=StaticMethodsforMovement.getCannon(img);
     }
 
     private void createArrows() {
@@ -103,4 +110,8 @@ public class Level {
    // private void calcPlayerSpawn() {
       //  spawn = GetPlayerSpawn(img);
    // }
+
+    public ArrayList<CannonGun> getCannonGuns() {
+        return cannonGuns;
+    }
 }

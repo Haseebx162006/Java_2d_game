@@ -133,10 +133,10 @@ public class Playing extends State implements Methods{
         }
         else if (!paused && !player.isDead() && !level_Complete){
             levelManager.update();
-            objectsManager.update();
+            objectsManager.update(levelManager.getLevel().getLvldata(),player);
             player.UpdatePlayer();
             checkBorder();
-            enemyMangerclass.update();
+            enemyMangerclass.update(levelManager.getLevel().getLvldata(),player);
             checkCombat(); // Check for attacks and collisions
         }
         else if (paused){

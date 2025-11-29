@@ -30,6 +30,11 @@ public class Player extends  Entity{
     private float jumpSpeed=  (-2.25f* game.SCALE);
     private float fallSpeed= 0.5f*game.SCALE;
     private boolean DuringAir=false;
+    private int tileY = 0;
+
+    public int getTileY() {
+        return tileY;
+    }
 
     // Health system
     private int maxHealth = 100;
@@ -49,6 +54,11 @@ public class Player extends  Entity{
     private boolean invulnerable = false;
     private int invulnerabilityTimer = 0;
     private Playing playing;
+
+    public void setDead(boolean dead) {
+        isDead = dead;
+    }
+
     private static final int INVULNERABILITY_DURATION = 60; // 1 second at 60 FPS
     public Player(float x, float y, int width, int height, Playing playing) {
         super(x, y,width,height);
@@ -60,8 +70,10 @@ public class Player extends  Entity{
     }
     public void changeHealth(int value) {
         currentHealth += value;
-        if (currentHealth <= 0)
-            currentHealth = 0;
+        if (currentHealth <= 0){
+            currentHealth=0;
+            KillPlayer();
+        }
         else if (currentHealth >= maxHealth)
             currentHealth = maxHealth;
     }
@@ -73,8 +85,11 @@ public class Player extends  Entity{
 
         UpdatePosition();
         playing.checkObjectHit(box);
+        if (Player_is_moving) {
             checkPotiontouched();
             checkArrowChecked();
+            tileY=(int)(box.y/game.TILE_SIZE);
+        }
         updateCombat();
         updateAnimation();
         setAnimation();

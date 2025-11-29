@@ -1,7 +1,6 @@
 package Function;
 import Entities.Enemy1;
-import Rewards.Arrow;
-import Rewards.Potions;
+import Rewards.*;
 import Rewards.Container;
 import main.game;
 
@@ -158,5 +157,39 @@ public class StaticMethodsforMovement {
             }
         }
         return list;
+    }
+    public static ArrayList<CannonGun> getCannon(BufferedImage img) {
+        ArrayList<CannonGun> list = new ArrayList<>();
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i));
+                int value = color.getBlue();
+                if (value == CANNON_LEFT|| value==CANNON_RIGHT) {
+                    list.add(new CannonGun(j*game.TILE_SIZE,i*game.TILE_SIZE,value));
+                }
+            }
+        }
+        return list;
+    }
+    public static boolean IsProjectileHittingLevel(Ball b, int[][] lvlData) {
+        return IsSolid( b.getBox().x+ b.getBox().width / 2, b.getBox().y + b.getBox().height / 2, lvlData);
+
+    }
+
+    public static boolean CanCannonSeePlayer(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int yTile) {
+        Object Game;
+        int firstXTile = (int) (firstHitbox.x / game.TILE_SIZE);
+        int secondXTile = (int) (secondHitbox.x / game.TILE_SIZE);
+
+        if (firstXTile > secondXTile)
+            return IsAllTilesClear(secondXTile, firstXTile, yTile, lvlData);
+        else
+            return IsAllTilesClear(firstXTile, secondXTile, yTile, lvlData);
+    }
+    public static boolean IsAllTilesClear(int xStart, int xEnd, int y, int[][] lvlData) {
+        for (int i = 0; i < xEnd - xStart; i++)
+            if (IsSolid(xStart + i, y, lvlData))
+                return false;
+        return true;
     }
 }
