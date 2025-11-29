@@ -4,6 +4,7 @@ import Entities.EnemyMangerclass;
 import Entities.Player;
 import Function.LoadSave;
 import GameLevels.LevelManager;
+import Rewards.Objects_Manager;
 import UI.CompleteLevelBanner;
 import UI.Pause;
 import main.game;
@@ -20,6 +21,7 @@ import static Function.features.background.*;
 public class Playing extends State implements Methods{
     private BufferedImage background,bigCloud,smallCloud;
     int[] cloudPositons;
+    private Objects_Manager objectsManager;
     private boolean level_Complete;
     private Player player;
     private LevelManager levelManager;
@@ -59,6 +61,7 @@ public class Playing extends State implements Methods{
         level_Complete = false;
         enemyMangerclass.resetEnemies();
         enemyMangerclass.addEnemies(levelManager.getLevel());
+        objectsManager.loadObject(levelManager.getLevel());
         enemyMangerclass.setPlayer(player);
     }
 
@@ -69,7 +72,8 @@ public class Playing extends State implements Methods{
     private void initClasses(){
         levelManager= new LevelManager(game1);
         enemyMangerclass= new EnemyMangerclass(this);
-        player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE));
+        objectsManager= new Objects_Manager(this);
+        player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE),this);
         player.LoadlevelData(levelManager.getLevel().getLvldata());
         enemyMangerclass.loadLevelData(levelManager.getLevel().getLvldata());
         enemyMangerclass.setPlayer(player); // Pass player reference to enemies
@@ -90,7 +94,8 @@ public class Playing extends State implements Methods{
 
         // Reset enemies - MUST RE-ADD THEM!
         enemyMangerclass.resetEnemies(); // Clears the list
-        enemyMangerclass.addEnemies(levelManager.getLevel()); // Re-adds enemies from level data
+        enemyMangerclass.addEnemies(levelManager.getLevel());
+        objectsManager.resetAllObjects();
     }
     public Player getPlayer(){
         return player;
@@ -128,6 +133,7 @@ public class Playing extends State implements Methods{
         }
         else if (!paused && !player.isDead() && !level_Complete){
             levelManager.update();
+            objectsManager.update();
             player.UpdatePlayer();
             checkBorder();
             enemyMangerclass.update();
@@ -173,7 +179,10 @@ public class Playing extends State implements Methods{
             levelxOffset=0;
         }
     }
+    public void checkPotionTouched(Rectangle2D.Float box){
+        objectsManager.checkTouch(box);
 
+    }
     @Override
     public void draw(Graphics g) {
         g.drawImage(background,0,0,game.GAME_WIDTH,game.GAME_HEIGHT,null);
@@ -181,6 +190,7 @@ public class Playing extends State implements Methods{
         levelManager.draw(g,levelxOffset);
         player.RenderPlayer(g,levelxOffset);
         enemyMangerclass.draw(g,levelxOffset);
+        objectsManager.draw(g,levelxOffset);
         g.setColor(Color.RED);
         drawHealthBar(g); // Draw player health bar
         if (showGameOver) {
@@ -328,6 +338,10 @@ public class Playing extends State implements Methods{
         }
     }
 
+    public Objects_Manager getObjectsManager() {
+        return objectsManager;
+    }
+
     @Override
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()){
@@ -346,6 +360,10 @@ public class Playing extends State implements Methods{
     public void setLevelCompleted(boolean levelComppleted) {
         this.level_Complete=levelComppleted;
 
+    }
+
+    public void checkObjectHit(Rectangle2D.Float box) {
+        objectsManager.checkObjectHit(box);
     }
 }
 

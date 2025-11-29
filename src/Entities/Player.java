@@ -1,6 +1,7 @@
 package Entities;
 
 import Function.LoadSave;
+import State.Playing;
 import main.game;
 
 import java.awt.*;
@@ -14,7 +15,7 @@ public class Player extends  Entity{
     // I create a 2D array to store the sprites png and performing actions
     private BufferedImage[][] Animation;
     private static final boolean DEBUG_HITBOX = false;
-    private float XOffset;  // these offset variables are for the collision box
+    private float XOffset;// these offset variables are for the collision box
     private float YOffset;
     private static final float FOOT_ADJUST = 8f * game.SCALE;
     private float Gravity= 0.04f*game.SCALE;
@@ -29,7 +30,7 @@ public class Player extends  Entity{
     private float jumpSpeed=  (-2.25f* game.SCALE);
     private float fallSpeed= 0.5f*game.SCALE;
     private boolean DuringAir=false;
-    
+
     // Health system
     private int maxHealth = 100;
     private int currentHealth = maxHealth;
@@ -47,26 +48,47 @@ public class Player extends  Entity{
     private static final int ATTACK_ACTIVE_FRAME_END = 2; // Attack hitbox is active until frame 2 (of 3 total)
     private boolean invulnerable = false;
     private int invulnerabilityTimer = 0;
+    private Playing playing;
     private static final int INVULNERABILITY_DURATION = 60; // 1 second at 60 FPS
-    public Player(float x, float y,int width,int height) {
+    public Player(float x, float y, int width, int height, Playing playing) {
         super(x, y,width,height);
+        this.playing=playing;
         load_Animations();
         CreateBox(x,y,game.SCALE*28,game.SCALE*28);
         XOffset = (width - box.width) / 2f;
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
+    }
+    public void changeHealth(int value) {
+        currentHealth += value;
+        if (currentHealth <= 0)
+            currentHealth = 0;
+        else if (currentHealth >= maxHealth)
+            currentHealth = maxHealth;
     }
     public void UpdatePlayer(){
         if (isDead) {
             updateDeathAnimation();
             return;
         }
-        updateCombat();
+
         UpdatePosition();
+        playing.checkObjectHit(box);
+            checkPotiontouched();
+        updateCombat();
         updateAnimation();
         setAnimation();
         updateHitCooldown();
         updateInvulnerability();
     }
+
+    private void checkPotiontouched() {
+        playing.checkPotionTouched(box);
+    }
+
+    public void changePower(int value) {
+        System.out.println("Added power!");
+    }
+
     private void updateInvulnerability() {
         if (invulnerable) {
             invulnerabilityTimer--;

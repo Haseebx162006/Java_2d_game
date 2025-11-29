@@ -1,11 +1,15 @@
 package Function;
 import Entities.Enemy1;
+import Rewards.Potions;
+import Rewards.Container;
 import main.game;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+
+import static Function.features.Objects.*;
 
 public class StaticMethodsforMovement {
 
@@ -100,6 +104,41 @@ public class StaticMethodsforMovement {
                 int value = color.getGreen();
                 if (value == features.UI.Enemies.ENEMY_1) {
                     list.add(new Enemy1(j * game.TILE_SIZE, i * game.TILE_SIZE));
+                }
+            }
+        }
+        return list;
+    }
+    public static ArrayList<Potions> getPotions(BufferedImage img) {
+        ArrayList<Potions> list = new ArrayList<>();
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i));
+                int red = color.getRed();
+                int blue = color.getBlue();
+
+                // Skip if it's a tile/brick (red channel is used for tiles)
+                if (red < 48 && red != 0) {
+                    continue;
+                }
+                if (blue == RED_POTION) {
+                    list.add(new Potions(j*game.TILE_SIZE,i*game.TILE_SIZE,RED_POTION));
+                }
+                else if (blue == BLUE_POTION){
+                    list.add(new Potions(j*game.TILE_SIZE,i*game.TILE_SIZE,BLUE_POTION));
+                }
+            }
+        }
+        return list;
+    }
+    public static ArrayList<Container> getContainers(BufferedImage img) {
+        ArrayList<Container> list = new ArrayList<>();
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i));
+                int value = color.getBlue();
+                if (value == BOX || value==BARREL) {
+                    list.add(new Container(j*game.TILE_SIZE,i*game.TILE_SIZE,value));
                 }
             }
         }

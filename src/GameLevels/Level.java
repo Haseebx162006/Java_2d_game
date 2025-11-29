@@ -1,6 +1,9 @@
 package GameLevels;
 
 import Entities.Enemy1;
+import Function.StaticMethodsforMovement;
+import Rewards.Container;
+import Rewards.Potions;
 import main.game;
 
 import javax.script.ScriptEngine;
@@ -13,6 +16,9 @@ public class Level {
     private int[][] levelData;
     private BufferedImage img;
     private ArrayList<Enemy1> enemy1;
+    private ArrayList<Potions> potions;
+    private ArrayList<Container> containers;
+
     private int lvlTiles_Width;
     private int maxTilesoff;
     private int maxLevelOffsetX;
@@ -21,7 +27,25 @@ public class Level {
         this.img=img;
         CreateLevel();
         CreateEnemies();
+        createPotions();
+        createContainers();
         CalculateOffsets();
+    }
+
+    private void createContainers() {
+        containers= StaticMethodsforMovement.getContainers(img);
+    }
+
+    public ArrayList<Container> getContainers() {
+        return containers;
+    }
+
+    public ArrayList<Potions> getPotions() {
+        return potions;
+    }
+
+    private void createPotions() {
+        potions=StaticMethodsforMovement.getPotions(img);
     }
 
     private void CalculateOffsets() {
@@ -47,7 +71,8 @@ public class Level {
     public int getSpriteIndex(int x, int y){
         int value = levelData[y][x];
 
-        if (value < 0 || value >= game.TILE_SIZE) {
+        // Check if value is a valid tile index (0-47 for 48 tiles)
+        if (value < 0 || value >= 48) {
             return 0;
         }
 

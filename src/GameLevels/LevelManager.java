@@ -46,6 +46,14 @@ public class LevelManager {
         for (int i = 0; i < game.TILE_HEIGHT; i++) {
             for (int j = 0; j < levels.get(Level_Index).getLvldata()[0].length; j++) {
                 int index=levels.get(Level_Index).getSpriteIndex(j,i);
+                if (i >= 12 && j < 15) {  // Check bottom 2 rows, first 15 columns
+                    System.out.println("Bottom tile at (" + j + "," + i + ") = " + index);
+                }
+                // Skip drawing tile 11 (air/empty)
+                if (index == 11) {
+                    continue;
+                }
+                int displayIndex = (index == 13) ? 1 : index;
                 g.drawImage(LevelImg[index],game.TILE_SIZE*j-leveloff,i*game.TILE_SIZE,game.TILE_SIZE,game.TILE_SIZE,null);
             }
         }
@@ -69,6 +77,7 @@ public class LevelManager {
         Game.getPlaying().getEnemyMangerclass().addEnemies(newLevel);
         Game.getPlaying().getPlayer().LoadlevelData(newLevel.getLvldata());
         Game.getPlaying().setLevelOffset(newLevel.getleveloffset());
+        Game.getPlaying().getObjectsManager().loadObject(newLevel);
 
     }
 }

@@ -29,6 +29,8 @@ public class LoadSave {
     public static final String PAUSE_BACKGROUND="menu_bg.jpg";
     public static final String ENEMY_1_PNG ="enemy_1.png";
     public static final String LOAD_COMPLETE_LEVEL="completed_sprite.png";
+    public static final String Potion="potions_sprites.png";
+    public static final String OBJECT="objects_sprites.png";
    public static BufferedImage GetAtlas(String fileName){
         BufferedImage img=null;
         InputStream is = LoadSave.class.getResourceAsStream("/"+fileName);
