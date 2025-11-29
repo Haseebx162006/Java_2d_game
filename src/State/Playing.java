@@ -19,6 +19,9 @@ import java.util.Random;
 import static Function.features.background.*;
 
 public class Playing extends State implements Methods{
+    private boolean drawShip = true;
+    private int shipAni, shipTick, shipDir = 1;
+    private float shipHeightDelta, shipHeightChange = 0.05f * game.SCALE;
     private BufferedImage background,bigCloud,smallCloud;
     int[] cloudPositons;
     private Objects_Manager objectsManager;
@@ -30,12 +33,10 @@ public class Playing extends State implements Methods{
     private Random random= new Random();
     private EnemyMangerclass enemyMangerclass;
     private int levelxOffset;
-    private int left_border=(int)(0.2*game.GAME_WIDTH);
-    private int right_border=(int)(0.8*game.GAME_WIDTH);
+    private int left_border=(int)(0.25*game.GAME_WIDTH);
+    private int right_border=(int)(0.75*game.GAME_WIDTH);
     private int maxLevelOffset;
     public CompleteLevelBanner completeLevelBanner;
-
-
     // Game Over state
     private boolean showGameOver = false;
     private int gameOverTimer = 0;
@@ -54,19 +55,19 @@ public class Playing extends State implements Methods{
         loadFirstlevel();
     }
     public void LoadNextLevel(){
-        resetGame();
+        levelManager.setLevel_Index(levelManager.getLevel_Index() + 1);
         levelManager.loadnextLevel();
+        //player.(levelManager.getCurrentLevel().getPlayerSpawn());
+        resetGame();
+        drawShip = false;
     }
     private void loadFirstlevel() {
-        level_Complete = false;
-        enemyMangerclass.resetEnemies();
         enemyMangerclass.addEnemies(levelManager.getLevel());
         objectsManager.loadObject(levelManager.getLevel());
-        enemyMangerclass.setPlayer(player);
     }
 
     private void calculateLevelOffset() {
-        maxLevelOffset=levelManager.getLevel().getleveloffset();
+        maxLevelOffset=levelManager.getLevel().getMaxLvlOffsetX();
     }
 
     private void initClasses(){
@@ -74,9 +75,9 @@ public class Playing extends State implements Methods{
         enemyMangerclass= new EnemyMangerclass(this);
         objectsManager= new Objects_Manager(this);
         player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE),this);
-        player.LoadlevelData(levelManager.getLevel().getLvldata());
-        enemyMangerclass.loadLevelData(levelManager.getLevel().getLvldata());
-        enemyMangerclass.setPlayer(player); // Pass player reference to enemies
+        player.LoadlevelData(levelManager.getLevel().getLvlData());
+        enemyMangerclass.loadLevelData(levelManager.getLevel().getLvlData());
+        //enemyMangerclass.setPlayer(player); // Pass player reference to enemies
         pause= new Pause(this);
         completeLevelBanner= new CompleteLevelBanner(this);
     }
@@ -90,7 +91,7 @@ public class Playing extends State implements Methods{
 
         level_Complete=false;
         player.reset();
-        player.LoadlevelData(levelManager.getLevel().getLvldata());
+        player.LoadlevelData(levelManager.getLevel().getLvlData());
 
         // Reset enemies - MUST RE-ADD THEM!
         enemyMangerclass.resetEnemies(); // Clears the list
@@ -133,10 +134,10 @@ public class Playing extends State implements Methods{
         }
         else if (!paused && !player.isDead() && !level_Complete){
             levelManager.update();
-            objectsManager.update(levelManager.getLevel().getLvldata(),player);
+            objectsManager.update(levelManager.getLevel().getLvlData(),player);
             player.UpdatePlayer();
             checkBorder();
-            enemyMangerclass.update(levelManager.getLevel().getLvldata(),player);
+            enemyMangerclass.update(levelManager.getLevel().getLvlData(),player);
             checkCombat(); // Check for attacks and collisions
         }
         else if (paused){
@@ -145,7 +146,11 @@ public class Playing extends State implements Methods{
             // Only update player death animation
             player.UpdatePlayer();
         }
+
     }
+
+
+
 
     private void checkCombat() {
         if (!player.isAlive()) {

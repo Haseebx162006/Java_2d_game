@@ -27,6 +27,10 @@ public  class features {
         public static final int SPIKE = 4;
         public static final int CANNON_LEFT = 5;
         public static final int CANNON_RIGHT = 6;
+        public static final int TREE_ONE = 7;
+        public static final int TREE_TWO = 8;
+        public static final int TREE_THREE = 9;
+
 
 
         public static final int RED_POTION_VALUE = 15;

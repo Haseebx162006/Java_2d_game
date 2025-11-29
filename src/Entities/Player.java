@@ -31,7 +31,8 @@ public class Player extends  Entity{
     private float fallSpeed= 0.5f*game.SCALE;
     private boolean DuringAir=false;
     private int tileY = 0;
-
+    private int flipX = 0;
+    private int flipW = 1;
     public int getTileY() {
         return tileY;
     }
@@ -58,13 +59,18 @@ public class Player extends  Entity{
     public void setDead(boolean dead) {
         isDead = dead;
     }
-
+    public void setSpawn(Point spawn) {
+        this.x = spawn.x;
+        this.y = spawn.y;
+        box.x = x;
+        box.y = y;
+    }
     private static final int INVULNERABILITY_DURATION = 60; // 1 second at 60 FPS
     public Player(float x, float y, int width, int height, Playing playing) {
         super(x, y,width,height);
         this.playing=playing;
         load_Animations();
-        CreateBox(x,y,game.SCALE*28,game.SCALE*28);
+        CreateBox(x,y,game.SCALE*28,game.SCALE*29);
         XOffset = (width - box.width) / 2f;
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
     }
@@ -112,6 +118,12 @@ public class Player extends  Entity{
         this.currentHealth=0;
         isDead=true;
     }
+    private void checkInsideWater() {
+        if (IsEntityInWater(box, playing.getLevelManager().getLevel().getLvlData()))
+            currentHealth = 0;
+        setDead(true);
+    }
+
     private void updateInvulnerability() {
         if (invulnerable) {
             invulnerabilityTimer--;
@@ -479,4 +491,243 @@ public class Player extends  Entity{
         left=false;
     }
 
+    public BufferedImage[][] getAnimation() {
+        return Animation;
+    }
+
+    public void setAnimation(BufferedImage[][] animation) {
+        Animation = animation;
+    }
+
+    public float getXOffset() {
+        return XOffset;
+    }
+
+    public void setXOffset(float XOffset) {
+        this.XOffset = XOffset;
+    }
+
+    public float getYOffset() {
+        return YOffset;
+    }
+
+    public void setYOffset(float YOffset) {
+        this.YOffset = YOffset;
+    }
+
+    public float getGravity() {
+        return Gravity;
+    }
+
+    public void setGravity(float gravity) {
+        Gravity = gravity;
+    }
+
+    public int getAnimation_tick() {
+        return Animation_tick;
+    }
+
+    public void setAnimation_tick(int animation_tick) {
+        Animation_tick = animation_tick;
+    }
+
+    public int getAnimation_index() {
+        return Animation_index;
+    }
+
+    public void setAnimation_index(int animation_index) {
+        Animation_index = animation_index;
+    }
+
+    public int getAnimation_Speed() {
+        return Animation_Speed;
+    }
+
+    public void setAnimation_Speed(int animation_Speed) {
+        Animation_Speed = animation_Speed;
+    }
+
+    public int getPlayermove() {
+        return Playermove;
+    }
+
+    public void setPlayermove(int playermove) {
+        Playermove = playermove;
+    }
+
+    public boolean isPlayer_is_moving() {
+        return Player_is_moving;
+    }
+
+    public void setPlayer_is_moving(boolean player_is_moving) {
+        Player_is_moving = player_is_moving;
+    }
+
+    public void setAttacking(boolean attacking) {
+        this.attacking = attacking;
+    }
+
+    public boolean isUp() {
+        return up;
+    }
+
+    public boolean isDown() {
+        return down;
+    }
+
+    public boolean isRight() {
+        return right;
+    }
+
+    public boolean isLeft() {
+        return left;
+    }
+
+    public boolean isJump() {
+        return jump;
+    }
+
+    public float getPlayerSpeed() {
+        return playerSpeed;
+    }
+
+    public void setPlayerSpeed(float playerSpeed) {
+        this.playerSpeed = playerSpeed;
+    }
+
+    public boolean isCanJump() {
+        return canJump;
+    }
+
+    public void setCanJump(boolean canJump) {
+        this.canJump = canJump;
+    }
+
+    public int[][] getDataOfLevel() {
+        return DataOfLevel;
+    }
+
+    public void setDataOfLevel(int[][] dataOfLevel) {
+        DataOfLevel = dataOfLevel;
+    }
+
+    public float getAirSpeed() {
+        return airSpeed;
+    }
+
+    public void setAirSpeed(float airSpeed) {
+        this.airSpeed = airSpeed;
+    }
+
+    public float getJumpSpeed() {
+        return jumpSpeed;
+    }
+
+    public void setJumpSpeed(float jumpSpeed) {
+        this.jumpSpeed = jumpSpeed;
+    }
+
+    public float getFallSpeed() {
+        return fallSpeed;
+    }
+
+    public void setFallSpeed(float fallSpeed) {
+        this.fallSpeed = fallSpeed;
+    }
+
+    public boolean isDuringAir() {
+        return DuringAir;
+    }
+
+    public void setDuringAir(boolean duringAir) {
+        DuringAir = duringAir;
+    }
+
+    public void setTileY(int tileY) {
+        this.tileY = tileY;
+    }
+
+    public int getFlipX() {
+        return flipX;
+    }
+
+    public void setFlipX(int flipX) {
+        this.flipX = flipX;
+    }
+
+    public int getFlipW() {
+        return flipW;
+    }
+
+    public void setFlipW(int flipW) {
+        this.flipW = flipW;
+    }
+
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
+    }
+
+    public void setCurrentHealth(int currentHealth) {
+        this.currentHealth = currentHealth;
+    }
+
+    public boolean isHit() {
+        return isHit;
+    }
+
+    public void setHit(boolean hit) {
+        isHit = hit;
+    }
+
+    public int getHitCooldown() {
+        return hitCooldown;
+    }
+
+    public void setHitCooldown(int hitCooldown) {
+        this.hitCooldown = hitCooldown;
+    }
+
+    public int getDeathAnimationTimer() {
+        return deathAnimationTimer;
+    }
+
+    public void setDeathAnimationTimer(int deathAnimationTimer) {
+        this.deathAnimationTimer = deathAnimationTimer;
+    }
+
+    public boolean isAttackHitProcessed() {
+        return attackHitProcessed;
+    }
+
+    public int getAttackDirection() {
+        return attackDirection;
+    }
+
+    public void setAttackDirection(int attackDirection) {
+        this.attackDirection = attackDirection;
+    }
+
+    public boolean isInvulnerable() {
+        return invulnerable;
+    }
+
+    public void setInvulnerable(boolean invulnerable) {
+        this.invulnerable = invulnerable;
+    }
+
+    public int getInvulnerabilityTimer() {
+        return invulnerabilityTimer;
+    }
+
+    public void setInvulnerabilityTimer(int invulnerabilityTimer) {
+        this.invulnerabilityTimer = invulnerabilityTimer;
+    }
+
+    public Playing getPlaying() {
+        return playing;
+    }
+
+    public void setPlaying(Playing playing) {
+        this.playing = playing;
+    }
 }

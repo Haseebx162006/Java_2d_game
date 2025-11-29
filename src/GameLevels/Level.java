@@ -3,10 +3,9 @@ package GameLevels;
 import Entities.Enemy1;
 import Function.LoadSave;
 import Function.StaticMethodsforMovement;
-import Rewards.Arrow;
-import Rewards.CannonGun;
+import Function.features;
+import Rewards.*;
 import Rewards.Container;
-import Rewards.Potions;
 import main.game;
 
 import javax.script.ScriptEngine;
@@ -15,103 +14,149 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import static Function.StaticMethodsforMovement.GetLevelData;
 import static Function.StaticMethodsforMovement.getEnemyCrab;
+import static Function.features.Objects.*;
+import static Function.features.UI.Enemies.ENEMY_1;
+
 public class Level {
-    private int[][] levelData;
     private BufferedImage img;
-    private ArrayList<Enemy1> enemy1;
-    private ArrayList<Potions> potions;
-    private ArrayList<Container> containers;
-    private ArrayList<Arrow> arrows;
-    private ArrayList<CannonGun> cannonGuns;
+    private int[][] lvlData;
 
-    private int lvlTiles_Width;
-    private int maxTilesoff;
-    private int maxLevelOffsetX;
-    private Point spawn;
-    Level(BufferedImage img){
-        this.img=img;
-        CreateLevel();
-        CreateEnemies();
-        createPotions();
-        createArrows();
-        createContainers();
-        createCannons();
-        CalculateOffsets();
+    private ArrayList<Enemy1> crabs = new ArrayList<>();
+  //  private ArrayList<Pinkstar> pinkstars = new ArrayList<>();
+  //  private ArrayList<Shark> sharks = new ArrayList<>();
+    private ArrayList<Potions> potions = new ArrayList<>();
+    private ArrayList<Arrow> arrows = new ArrayList<>();
+    private ArrayList<Container> containers = new ArrayList<>();
+    private ArrayList<CannonGun> cannons = new ArrayList<>();
+    private ArrayList<BackgroundTree> trees = new ArrayList<>();
+    private ArrayList<Grass> grass = new ArrayList<>();
+
+    private int lvlTilesWide;
+    private int maxTilesOffset;
+    private int maxLvlOffsetX;
+    private Point playerSpawn;
+
+    public Level(BufferedImage img) {
+        this.img = img;
+        lvlData = new int[img.getHeight()][img.getWidth()];
+        loadLevel();
+        calcLvlOffsets();
     }
 
-    private void createCannons() {
-        cannonGuns=StaticMethodsforMovement.getCannon(img);
+    private void loadLevel() {
+
+        // Looping through the image colors just once. Instead of one per
+        // object/enemy/etc..
+        // Removed many methods in HelpMethods class.
+
+        for (int y = 0; y < img.getHeight(); y++)
+            for (int x = 0; x < img.getWidth(); x++) {
+                Color c = new Color(img.getRGB(x, y));
+                int red = c.getRed();
+                int green = c.getGreen();
+                int blue = c.getBlue();
+
+                loadLevelData(red, x, y);
+                loadEntities(green, x, y);
+                loadObjects(blue, x, y);
+            }
     }
 
-    private void createArrows() {
-        arrows= StaticMethodsforMovement.getSpikes(img);
+    private void loadLevelData(int redValue, int x, int y) {
+        if (redValue >= 50)
+            lvlData[y][x] = 0;
+        else
+            lvlData[y][x] = redValue;
+        switch (redValue) {
+            case 0, 1, 2, 3, 30, 31, 33, 34, 35, 36, 37, 38, 39 ->
+                    grass.add(new Grass((int) (x * game.TILE_SIZE), (int) (y * game.TILE_SIZE) - game.TILE_SIZE, getRndGrassType(x)));
+        }
     }
 
-    private void createContainers() {
-        containers= StaticMethodsforMovement.getContainers(img);
+    private int getRndGrassType(int xPos) {
+        return xPos % 2;
     }
 
-    public ArrayList<Container> getContainers() {
-        return containers;
+    private void loadEntities(int greenValue, int x, int y) {
+        switch (greenValue) {
+            case ENEMY_1 -> crabs.add(new Enemy1(x * game.TILE_SIZE, y * game.TILE_SIZE));
+          //  case PINKSTAR -> pinkstars.add(new Pinkstar(x * Game.TILES_SIZE, y * Game.TILES_SIZE));
+         //   case SHARK -> sharks.add(new Shark(x * Game.TILES_SIZE, y * Game.TILES_SIZE));
+            case 100 -> playerSpawn = new Point(x * game.TILE_SIZE, y * game.TILE_SIZE);
+        }
+    }
+    private void loadObjects(int blueValue, int x, int y) {
+        switch (blueValue) {
+            case RED_POTION, features.Objects.BLUE_POTION -> potions.add(new Potions(x * game.TILE_SIZE, y * game.TILE_SIZE, blueValue));
+            case BOX, BARREL -> containers.add(new Container(x * game.TILE_SIZE, y * game.TILE_SIZE, blueValue));
+            case SPIKE -> arrows.add(new Arrow(x * game.TILE_SIZE, y * game.TILE_SIZE, SPIKE));
+            case CANNON_LEFT, CANNON_RIGHT -> cannons.add(new CannonGun(x * game.TILE_SIZE, y * game.TILE_SIZE, blueValue));
+            case TREE_ONE, TREE_TWO, TREE_THREE -> trees.add(new BackgroundTree(x * game.TILE_SIZE, y * game.TILE_SIZE, blueValue));
+        }
+    }
+
+    public BufferedImage getImg() {
+        return img;
+    }
+
+    public int[][] getLvlData() {
+        return lvlData;
+    }
+
+    public ArrayList<Enemy1> getCrabs() {
+        return crabs;
     }
 
     public ArrayList<Potions> getPotions() {
         return potions;
     }
 
-    private void createPotions() {
-        potions=StaticMethodsforMovement.getPotions(img);
-    }
-
-    private void CalculateOffsets() {
-        lvlTiles_Width=img.getWidth();
-        maxLevelOffsetX=lvlTiles_Width- game.TILE_WIDTH;
-        maxLevelOffsetX=game.TILE_SIZE*maxLevelOffsetX;
-    }
-
     public ArrayList<Arrow> getArrows() {
         return arrows;
     }
 
-    public void setArrows(ArrayList<Arrow> arrows) {
-        this.arrows = arrows;
+    public ArrayList<Container> getContainers() {
+        return containers;
     }
 
-    private void CreateEnemies() {
-        enemy1=getEnemyCrab(img);
+    public ArrayList<CannonGun> getCannons() {
+        return cannons;
     }
 
-    private void CreateLevel() {
-        // Generate level data from the image and keep a single authoritative array
-        levelData = GetLevelData(img);
+    public ArrayList<BackgroundTree> getTrees() {
+        return trees;
     }
-    public int getleveloffset(){
-        return maxLevelOffsetX;
-    }
-    public ArrayList<Enemy1> getEnemy1(){
-        return enemy1;
-    }
-    public int getSpriteIndex(int x, int y){
-        int value = levelData[y][x];
 
-        // Check if value is a valid tile index (0-47 for 48 tiles)
-        if (value < 0 || value >= 48) {
-            return 0;
-        }
+    public ArrayList<Grass> getGrass() {
+        return grass;
+    }
 
-        return value;
+    public int getLvlTilesWide() {
+        return lvlTilesWide;
     }
-    public int[][] getLvldata(){
-        return levelData;
+
+    public int getMaxTilesOffset() {
+        return maxTilesOffset;
     }
+
+    public int getMaxLvlOffsetX() {
+        return maxLvlOffsetX;
+    }
+
     public Point getPlayerSpawn() {
-        return spawn;
+        return playerSpawn;
     }
-   // private void calcPlayerSpawn() {
-      //  spawn = GetPlayerSpawn(img);
-   // }
 
-    public ArrayList<CannonGun> getCannonGuns() {
-        return cannonGuns;
+    private void calcLvlOffsets() {
+        lvlTilesWide = img.getWidth();
+        maxTilesOffset = lvlTilesWide - game.TILE_WIDTH;
+        maxLvlOffsetX = game.TILE_SIZE * maxTilesOffset;
+
     }
+
+    public int getSpriteIndex(int x, int y) {
+        return lvlData[y][x];
+    }
+
+
 }

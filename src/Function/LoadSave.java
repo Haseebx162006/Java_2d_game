@@ -34,6 +34,13 @@ public class LoadSave {
     public static final String TRAPS_1="traps.png";
     public static final String CANNON="cannon.png";
     public static final String BALL="ball.png";
+    public static final String WATER_BOTTOM = "water.png";
+    public static final String SHIP = "ship.png";
+    public static final String RAIN_PARTICLE = "rain_particle.png";
+    public static final String WATER_TOP = "water_atlas_animation.png";
+    public static final String GRASS_ATLAS = "grass_atlas.png";
+    public static final String TREE_ONE_ATLAS = "tree_one_atlas.png";
+    public static final String TREE_TWO_ATLAS = "tree_two_atlas.png";
    public static BufferedImage GetAtlas(String fileName){
         BufferedImage img=null;
         InputStream is = LoadSave.class.getResourceAsStream("/"+fileName);
@@ -80,26 +87,6 @@ public class LoadSave {
             }
 
         return imgs;
-    }
-
-    // Load level data (tiles) from a level image
-    public static int[][] GetLevelData(BufferedImage img) {
-        int width = img.getWidth();
-        int height = img.getHeight();
-        int[][] levelData = new int[height][width];
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int value = img.getRGB(x, y);
-                int red = (value >> 16) & 0xFF;
-                // Clamp to valid tile range if needed
-                if (red >= game.TILE_WIDTH * game.TILE_HEIGHT) {
-                    red = 0;
-                }
-                levelData[y][x] = red;
-            }
-        }
-        return levelData;
     }
 
     // Load enemy positions from all level images

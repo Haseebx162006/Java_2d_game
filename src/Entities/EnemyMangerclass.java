@@ -44,13 +44,13 @@ public class EnemyMangerclass {
     }
     public void addEnemies(Level level){
         // Create a NEW ArrayList with copies of the enemies, don't use the same reference!
-        crabbies = new ArrayList<>(level.getEnemy1());
+        crabbies = new ArrayList<>(level.getCrabs());
 
         // DEBUG: Print how many enemies were loaded
         System.out.println("Enemies loaded: " + crabbies.size());
 
         // Ensure every enemy knows about the level data for collision & movement
-        loadLevelData(level.getLvldata());
+        loadLevelData(level.getLvlData());
 
         // Also make sure each enemy has a reference to the current player
         if (playing != null && playing.getPlayer() != null) {

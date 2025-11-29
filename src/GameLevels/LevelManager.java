@@ -10,16 +10,80 @@ import java.util.ArrayList;
 
 public class LevelManager {
     private game Game;
-    private BufferedImage[] LevelImg;
+    private BufferedImage[] LevelImg,waterSprite;
     private ArrayList<Level> levels;
-    private int Level_Index;
+
+    public int getLevel_Index() {
+        return Level_Index;
+    }
+
+    public void setLevel_Index(int level_Index) {
+        Level_Index = level_Index;
+    }
+
+    public game getGame() {
+        return Game;
+    }
+
+    public void setGame(game game) {
+        Game = game;
+    }
+
+    public BufferedImage[] getLevelImg() {
+        return LevelImg;
+    }
+
+    public void setLevelImg(BufferedImage[] levelImg) {
+        LevelImg = levelImg;
+    }
+
+    public BufferedImage[] getWaterSprite() {
+        return waterSprite;
+    }
+
+    public void setWaterSprite(BufferedImage[] waterSprite) {
+        this.waterSprite = waterSprite;
+    }
+
+    public ArrayList<Level> getLevels() {
+        return levels;
+    }
+
+    public void setLevels(ArrayList<Level> levels) {
+        this.levels = levels;
+    }
+
+    public int getAniTick() {
+        return aniTick;
+    }
+
+    public void setAniTick(int aniTick) {
+        this.aniTick = aniTick;
+    }
+
+    public int getAniIndex() {
+        return aniIndex;
+    }
+
+    public void setAniIndex(int aniIndex) {
+        this.aniIndex = aniIndex;
+    }
+
+    private int Level_Index=0,aniTick, aniIndex;
     public LevelManager(game Game){
         this.Game=Game;
         importImgArray();
         levels=new ArrayList<>();
+        createWater();
         buildAllLevels();
     }
-
+    private void createWater() {
+        waterSprite = new BufferedImage[5];
+        BufferedImage img = LoadSave.GetAtlas(LoadSave.WATER_TOP);
+        for (int i = 0; i < 4; i++)
+            waterSprite[i] = img.getSubimage(i * 32, 0, 32, 32);
+        waterSprite[4] = LoadSave.GetAtlas(LoadSave.WATER_BOTTOM);
+    }
     private void buildAllLevels() {
         BufferedImage[] allLevels=LoadSave.getAll();
         for (BufferedImage img : allLevels){
@@ -43,20 +107,18 @@ public class LevelManager {
 
     }
     public void draw(Graphics g, int leveloff){
-        for (int i = 0; i < game.TILE_HEIGHT; i++) {
-            for (int j = 0; j < levels.get(Level_Index).getLvldata()[0].length; j++) {
-                int index=levels.get(Level_Index).getSpriteIndex(j,i);
-                if (i >= 12 && j < 15) {  // Check bottom 2 rows, first 15 columns
-                    System.out.println("Bottom tile at (" + j + "," + i + ") = " + index);
-                }
-                // Skip drawing tile 11 (air/empty)
-                if (index == 11) {
-                    continue;
-                }
-                int displayIndex = (index == 13) ? 1 : index;
-                g.drawImage(LevelImg[index],game.TILE_SIZE*j-leveloff,i*game.TILE_SIZE,game.TILE_SIZE,game.TILE_SIZE,null);
+        for (int j = 0; j < Game.TILE_HEIGHT; j++)
+            for (int i = 0; i < levels.get(Level_Index).getLvlData()[0].length; i++) {
+                int index = levels.get(Level_Index).getSpriteIndex(i, j);
+                int x = game.TILE_SIZE * i - leveloff;
+                int y = game.TILE_SIZE * j;
+                if (index == 48)
+                    g.drawImage(waterSprite[aniIndex], x, y, game.TILE_SIZE, game.TILE_SIZE, null);
+                else if (index == 49)
+                    g.drawImage(waterSprite[4], x, y, game.TILE_SIZE, game.TILE_SIZE, null);
+                else
+                    g.drawImage(LevelImg[index], x, y, game.TILE_SIZE,game.TILE_SIZE, null);
             }
-        }
 
     }
     public Level getLevel(){
@@ -67,6 +129,7 @@ public class LevelManager {
     }
 
     public void loadnextLevel() {
+
         Level_Index++;
         if (Level_Index>=levels.size()){
             Level_Index=0;
@@ -75,8 +138,8 @@ public class LevelManager {
         }
         Level newLevel=levels.get(Level_Index);
         Game.getPlaying().getEnemyMangerclass().addEnemies(newLevel);
-        Game.getPlaying().getPlayer().LoadlevelData(newLevel.getLvldata());
-        Game.getPlaying().setLevelOffset(newLevel.getleveloffset());
+        Game.getPlaying().getPlayer().LoadlevelData(newLevel.getLvlData());
+        Game.getPlaying().setLevelOffset(newLevel.getMaxLvlOffsetX());
         Game.getPlaying().getObjectsManager().loadObject(newLevel);
 
     }

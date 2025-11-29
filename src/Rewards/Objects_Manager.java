@@ -236,7 +236,7 @@ public class Objects_Manager {
         potions=new ArrayList<>(newLevel.getPotions());
         containers=new ArrayList<>(newLevel.getContainers());
         arrows= newLevel.getArrows();
-        cannonGuns=newLevel.getCannonGuns();
+        cannonGuns=newLevel.getCannons();
         balls.clear();
     }
 
