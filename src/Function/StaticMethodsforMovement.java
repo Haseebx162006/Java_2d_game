@@ -78,8 +78,8 @@ public class StaticMethodsforMovement {
     }
     public static boolean OnFloor(Rectangle2D.Float box, int[][] levelData){
         if (!IsSolid(box.x,box.y+box.height+1,levelData))
-           if (!IsSolid(box.x+box.width,box.y+box.height+1,levelData))
-               return false;
+            if (!IsSolid(box.x+box.width,box.y+box.height+1,levelData))
+                return false;
         return true;
     }
     public static int[][] GetLevelData(BufferedImage img){
@@ -98,12 +98,13 @@ public class StaticMethodsforMovement {
     }
 
     public static boolean IsEntityInWater(Rectangle2D.Float hitbox, int[][] lvlData) {
-        // Will only check if entity touch top water. Can't reach bottom water if not
-        // touched top water.
-        if (GetTileValue(hitbox.x, hitbox.y + hitbox.height, lvlData) != 48)
-            if (GetTileValue(hitbox.x + hitbox.width, hitbox.y + hitbox.height, lvlData) != 48)
-                return false;
-        return true;
+        // Water starts at a specific Y coordinate (adjust based on your level)
+        // Typically 3-4 tiles from the bottom
+        int lvlHeight = lvlData.length;
+        float waterY = (lvlHeight - 3) * game.TILE_SIZE; // Adjust the "3" if needed
+
+        // Player dies if their feet touch the water
+        return (hitbox.y + hitbox.height) >= waterY;
     }
 
     private static int GetTileValue(float xPos, float yPos, int[][] lvlData) {

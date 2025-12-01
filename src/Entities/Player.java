@@ -54,6 +54,8 @@ public class Player extends  Entity{
     private static final int ATTACK_ACTIVE_FRAME_END = 2; // Attack hitbox is active until frame 2 (of 3 total)
     private boolean invulnerable = false;
     private int invulnerabilityTimer = 0;
+    private static final int ATTACK_COOLDOWN = 20; // Cooldown between attacks
+    private int attackCooldown = 0;
     private Playing playing;
 
     public void setDead(boolean dead) {
@@ -70,7 +72,7 @@ public class Player extends  Entity{
         super(x, y,width,height);
         this.playing=playing;
         load_Animations();
-        CreateBox(x,y,game.SCALE*28,game.SCALE*29);
+        CreateBox(x,y,game.SCALE*24,game.SCALE*29);
         XOffset = (width - box.width) / 2f;
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
     }
@@ -86,6 +88,12 @@ public class Player extends  Entity{
     public void UpdatePlayer(){
         if (isDead) {
             updateDeathAnimation();
+            return;
+        }
+        
+        // Check for water collision
+        if (IsEntityInWater(box, playing.getLevelManager().getLevel().getLvlData())) {
+            KillPlayer();
             return;
         }
 
@@ -118,12 +126,24 @@ public class Player extends  Entity{
         this.currentHealth=0;
         isDead=true;
     }
-    private void checkInsideWater() {
-        if (IsEntityInWater(box, playing.getLevelManager().getLevel().getLvlData()))
-            currentHealth = 0;
-        setDead(true);
-    }
 
+    private void checkInsideWater() {
+        System.out.println("=== WATER CHECK ===");
+        System.out.println("Player box.y: " + box.y + ", box.height: " + box.height);
+        System.out.println("Player bottom Y: " + (box.y + box.height));
+
+        int[][] lvlData = playing.getLevelManager().getLevel().getLvlData();
+        System.out.println("Level data dimensions: " + lvlData.length + " x " + lvlData[0].length);
+
+        boolean inWater = IsEntityInWater(this.box, lvlData);
+        System.out.println("IsEntityInWater returned: " + inWater);
+
+        if (inWater){
+            System.out.println("!!! PLAYER DIED FROM WATER !!!");
+            KillPlayer();
+            setDead(true);
+        }
+    }
     private void updateInvulnerability() {
         if (invulnerable) {
             invulnerabilityTimer--;
@@ -133,13 +153,18 @@ public class Player extends  Entity{
         }
     }
     private void updateCombat() {
+        // Handle attack cooldown
+        if (attackCooldown > 0) {
+            attackCooldown--;
+        }
+
         // Reset attack hit tracking when attack animation starts (first frame)
         if (attacking && Playermove == ATTACK && Animation_index == 0 && Animation_tick == 0) {
             attackHitProcessed = false;
+            // Set attack direction based on current movement or facing
+            if (left) attackDirection = LEFT;
+            else if (right) attackDirection = RIGHT;
         }
-
-        // Store attack direction when attack is first triggered (before animation starts)
-        // This is handled in setAttack() method
 
         // Reset attack hit tracking when attack ends
         if (!attacking && Playermove != ATTACK) {
@@ -233,18 +258,19 @@ public class Player extends  Entity{
             return null;
         }
         
-        float attackWidth = 40 * game.SCALE;
-        float attackHeight = box.height;
+        float attackWidth = 50 * game.SCALE; // Slightly wider hitbox
+        float attackHeight = box.height * 0.8f; // Slightly shorter than player height
+        float attackY = box.y + (box.height - attackHeight) / 2; // Center vertically
         float attackX;
         
-        // Attack hitbox extends in the direction player was facing when attack started
+        // Attack hitbox extends in the direction player is facing
         if (attackDirection == LEFT) {
-            attackX = box.x - attackWidth;
+            attackX = box.x - attackWidth + 10; // Slight overlap with player
         } else {
-            attackX = box.x + box.width;
+            attackX = box.x + box.width - 10; // Slight overlap with player
         }
         
-        return new Rectangle2D.Float(attackX, box.y, attackWidth, attackHeight);
+        return new Rectangle2D.Float(attackX, attackY, attackWidth, attackHeight);
     }
     
     public boolean hasAttackHitProcessed() {
@@ -263,18 +289,16 @@ public class Player extends  Entity{
             drawBox(g, 8);
         }
     }
-    public void setAttack(boolean attacking){
-        // Only allow starting attack if not already attacking
-        if (attacking && !this.attacking) {
+    public void setAttack(boolean attacking) {
+        // Only allow starting attack if not already attacking and cooldown is complete
+        if (attacking && !this.attacking && attackCooldown <= 0) {
             this.attacking = true;
             attackHitProcessed = false;
-            // Store attack direction when attack starts
-            if (left) {
-                attackDirection = LEFT;
-            } else if (right) {
-                attackDirection = RIGHT;
-            }
-            // If no direction, keep previous direction (defaults to RIGHT)
+            attackCooldown = ATTACK_COOLDOWN;
+            // Set attack animation
+            Playermove = ATTACK;
+            Animation_tick = 0;
+            Animation_index = 0;
         } else if (!attacking) {
             // Allow stopping attack
             this.attacking = false;

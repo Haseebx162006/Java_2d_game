@@ -104,7 +104,18 @@ public class LevelManager {
     }
 
     public void update(){
-
+        updateWaterAnimation();
+    }
+    
+    private void updateWaterAnimation() {
+        aniTick++;
+        if (aniTick >= 20) { // Adjust this value to control animation speed (higher = slower)
+            aniTick = 0;
+            aniIndex++;
+            if (aniIndex >= 4) { // We have 4 frames of animation
+                aniIndex = 0;
+            }
+        }
     }
     public void draw(Graphics g, int leveloff){
         for (int j = 0; j < Game.TILE_HEIGHT; j++)

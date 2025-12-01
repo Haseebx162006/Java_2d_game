@@ -98,7 +98,22 @@ public abstract class Enemy extends Entity {
         if (isDead || hitCooldown > 0) {
             return;
         }
+        
         currentHealth -= damage;
+        
+        // Apply knockback if not dead
+        if (currentHealth > 0 && player != null) {
+            // Push enemy away from player
+            float knockbackDirection = player.getBox().x < box.x ? 1 : -1;
+            float knockback = 5.0f * game.SCALE;
+            
+            // Update position with knockback
+            float newX = box.x + knockback * knockbackDirection;
+            if (CanMove(newX, box.y, box.width, box.height, levelData)) {
+                box.x = newX;
+            }
+        }
+        
         if (currentHealth <= 0) {
             currentHealth = 0;
             isDead = true;
@@ -130,11 +145,13 @@ public abstract class Enemy extends Entity {
     }
 
     protected boolean canAttackPlayer() {
-        if (player == null || isDead || attackCooldown > 0) {
+        if (player == null || isDead || attackCooldown > 0 || player.isDead()) {
             return false;
         }
         float distance = Math.abs(player.getBox().x - box.x);
-        return distance <= attackRange;
+        float yDistance = Math.abs(player.getBox().y - box.y);
+        // Check if player is within attack range and roughly at the same height
+        return distance <= attackRange && yDistance < box.height * 0.8f;
     }
 
     public Rectangle2D.Float getAttackHitbox() {
@@ -142,29 +159,26 @@ public abstract class Enemy extends Entity {
             return null;
         }
 
-        System.out.println("Enemy attacking! Frame: " + animationIndex);
-
-        int attackActiveFrameStart = 2;
-        int attackActiveFrameEnd = 3;
+        // Only active during specific attack frames
+        int attackActiveFrameStart = 1;
+        int attackActiveFrameEnd = 2;
 
         if (animationIndex < attackActiveFrameStart || animationIndex > attackActiveFrameEnd) {
-            System.out.println("Attack frame not active yet");
             return null;
         }
 
-        System.out.println("ATTACK HITBOX ACTIVE!");
-
-        float attackWidth = 35 * game.SCALE;
-        float attackHeight = box.height;
+        float attackWidth = 40 * game.SCALE;
+        float attackHeight = box.height * 0.8f;
+        float attackY = box.y + (box.height - attackHeight) / 2;
         float attackX;
 
         if (walkDir == LEFT) {
-            attackX = box.x - attackWidth;
+            attackX = box.x - attackWidth + 10; // Slight overlap with enemy
         } else {
-            attackX = box.x + box.width;
+            attackX = box.x + box.width - 10; // Slight overlap with enemy
         }
 
-        return new Rectangle2D.Float(attackX, box.y, attackWidth, attackHeight);
+        return new Rectangle2D.Float(attackX, attackY, attackWidth, attackHeight);
     }
 
     private void adjustPositionOnFloor(int[][] levelData) {
