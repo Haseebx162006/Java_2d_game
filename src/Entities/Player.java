@@ -57,6 +57,10 @@ public class Player extends  Entity{
     private static final int ATTACK_COOLDOWN = 20; // Cooldown between attacks
     private int attackCooldown = 0;
     private Playing playing;
+    private float knockbackX = 0; // Knockback velocity
+    private static final float KNOCKBACK_SPEED = 3.0f * game.SCALE;
+    private static final int KNOCKBACK_DURATION = 10; // frames
+    private int knockbackTimer = 0;
 
     public void setDead(boolean dead) {
         isDead = dead;
@@ -88,6 +92,9 @@ public class Player extends  Entity{
     public void UpdatePlayer(){
         if (isDead) {
             updateDeathAnimation();
+            // Still update animation so death animation plays
+            setAnimation();
+            updateAnimation();
             return;
         }
 
@@ -110,6 +117,7 @@ public class Player extends  Entity{
             tileY=(int)(box.y/game.TILE_SIZE);
         }
         updateCombat();
+        updateKnockback();
         updateAnimation();
         setAnimation();
         updateHitCooldown();
@@ -130,6 +138,11 @@ public class Player extends  Entity{
     public void KillPlayer(){
         this.currentHealth=0;
         isDead=true;
+        // Reset death animation state
+        Playermove = GROUND;
+        Animation_tick = 0;
+        Animation_index = 0;
+        deathAnimationTimer = 0;
     }
 
     private void checkInsideWater() {
@@ -163,12 +176,16 @@ public class Player extends  Entity{
             attackCooldown--;
         }
 
+        // Update attack direction continuously based on movement input for better responsiveness
+        if (left) {
+            attackDirection = LEFT;
+        } else if (right) {
+            attackDirection = RIGHT;
+        }
+
         // Reset attack hit tracking when attack animation starts (first frame)
         if (attacking && Playermove == ATTACK && Animation_index == 0 && Animation_tick == 0) {
             attackHitProcessed = false;
-            // Set attack direction based on current movement or facing
-            if (left) attackDirection = LEFT;
-            else if (right) attackDirection = RIGHT;
         }
 
         // Reset attack hit tracking when attack ends
@@ -196,20 +213,53 @@ public class Player extends  Entity{
     
     // Health methods
     public void takeDamage(int damage) {
+        // Overload without enemy position - use default knockback
+        takeDamage(damage, box.x);
+    }
+    
+    public void takeDamage(int damage, float enemyX) {
         if (invulnerable || isDead()) {
             return; // Can't take damage while invulnerable or dead
         }
 
         currentHealth -= damage;
-        System.out.println("Player took " + damage + " damage. Health: " + currentHealth);
-
         if (currentHealth <= 0) {
             currentHealth = 0;
+            KillPlayer();
         }
 
         // Activate invulnerability
         invulnerable = true;
         invulnerabilityTimer = INVULNERABILITY_DURATION;
+        
+        // Apply knockback when hit - push player away from enemy
+        applyKnockback(enemyX);
+    }
+    
+    private void applyKnockback(float enemyX) {
+        // Push player away from the enemy that hit them
+        if (enemyX < box.x) {
+            // Enemy is to the left, push player right
+            knockbackX = KNOCKBACK_SPEED;
+        } else {
+            // Enemy is to the right, push player left
+            knockbackX = -KNOCKBACK_SPEED;
+        }
+        knockbackTimer = KNOCKBACK_DURATION;
+    }
+    
+    private void updateKnockback() {
+        // Knockback is now handled in UpdatePosition() method
+        // This method just decrements the timer
+        if (knockbackTimer > 0) {
+            knockbackTimer--;
+            // Gradually reduce knockback
+            knockbackX *= 0.85f;
+            if (knockbackTimer <= 0 || Math.abs(knockbackX) < 0.1f) {
+                knockbackX = 0;
+                knockbackTimer = 0;
+            }
+        }
     }
     
     public int getCurrentHealth() {
@@ -245,6 +295,10 @@ public class Player extends  Entity{
         box.y = 200;
         DuringAir = false;
         airSpeed = 0;
+        knockbackX = 0;
+        knockbackTimer = 0;
+        invulnerable = false;
+        invulnerabilityTimer = 0;
     }
     
     public boolean isAttacking() {
@@ -258,21 +312,22 @@ public class Player extends  Entity{
             return null;
         }
         
-        // Attack hitbox is only active during frames 1-2 (middle frames of 3-frame attack)
-        if (Animation_index < ATTACK_ACTIVE_FRAME_START || Animation_index > ATTACK_ACTIVE_FRAME_END) {
+        // Attack hitbox is active during frames 0-1 (first two frames for better responsiveness)
+        if (Animation_index > ATTACK_ACTIVE_FRAME_END) {
             return null;
         }
         
-        float attackWidth = 30 * game.SCALE; // Reduced width for more precise hit detection
-        float attackHeight = box.height * 0.6f; // Slightly shorter than player height
+        // Melee attack hitbox - shorter range for closer combat
+        float attackWidth = 30 * game.SCALE; // Reduced width for closer combat range
+        float attackHeight = box.height * 0.85f; // Taller hitbox for better vertical coverage
         float attackY = box.y + (box.height - attackHeight) / 2; // Center vertically
         float attackX;
         
-        // Attack hitbox extends in the direction player is facing
+        // Attack hitbox extends further in the direction player is facing
         if (attackDirection == LEFT) {
-            attackX = box.x - attackWidth + 5; // Reduced overlap with player
+            attackX = box.x - attackWidth; // Extend fully to the left
         } else {
-            attackX = box.x + box.width - 5; // Reduced overlap with player
+            attackX = box.x + box.width; // Extend fully to the right
         }
         
         return new Rectangle2D.Float(attackX, attackY, attackWidth, attackHeight);
@@ -311,6 +366,33 @@ public class Player extends  Entity{
     }
     private void UpdatePosition() {
         Player_is_moving=false;
+        
+        // Apply knockback first if active (takes priority)
+        if (knockbackTimer > 0) {
+            float newX = box.x + knockbackX;
+            if (CanMove(newX, box.y, box.width, box.height, DataOfLevel)) {
+                box.x = newX;
+            }
+            // Still allow gravity during knockback
+            if (DuringAir) {
+                float newY = box.y + airSpeed;
+                if (CanMove(box.x, newY, box.width, box.height, DataOfLevel)) {
+                    box.y = newY;
+                    airSpeed += Gravity;
+                } else {
+                    float correctedY = CheckUnderEnvironmentorAbove(box, airSpeed);
+                    if (correctedY >= 0 && correctedY < game.GAME_HEIGHT) {
+                        box.y = correctedY;
+                    }
+                    if (airSpeed > 0) {
+                        resetAirState();
+                    } else {
+                        airSpeed = fallSpeed;
+                    }
+                }
+            }
+            return; // Don't allow other movement during knockback
+        }
         
         // Prevent jump during attack animation
         if (jump && !DuringAir && !attacking){
@@ -451,8 +533,13 @@ public class Player extends  Entity{
             Animation_tick=0;
             Animation_index++;
             if (Animation_index>=GetPlayerMove(Playermove)){
-                Animation_index=0;
-                attacking=false;
+                // For death animation, stay on last frame instead of looping
+                if (isDead && Playermove == GROUND) {
+                    Animation_index = GetPlayerMove(Playermove) - 1;
+                } else {
+                    Animation_index=0;
+                    attacking=false;
+                }
             }
         }
     }

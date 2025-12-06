@@ -101,11 +101,11 @@ public abstract class Enemy extends Entity {
         
         currentHealth -= damage;
         
-        // Apply knockback if not dead
+        // Apply stronger knockback if not dead for better feedback
         if (currentHealth > 0 && player != null) {
             // Push enemy away from player
             float knockbackDirection = player.getBox().x < box.x ? 1 : -1;
-            float knockback = 5.0f * game.SCALE;
+            float knockback = 8.0f * game.SCALE; // Increased knockback for better feel
             
             // Update position with knockback
             float newX = box.x + knockback * knockbackDirection;
@@ -127,6 +127,10 @@ public abstract class Enemy extends Entity {
 
     public boolean isDead() {
         return isDead;
+    }
+    
+    public boolean isHit() {
+        return isHit;
     }
 
     public int getCurrentHealth() {
@@ -159,23 +163,24 @@ public abstract class Enemy extends Entity {
             return null;
         }
 
-        // Only active during specific attack frames
-        int attackActiveFrameStart = 1;
-        int attackActiveFrameEnd = 2;
+        // Only active during specific attack frames (middle of 7-frame attack animation)
+        int attackActiveFrameStart = 3;
+        int attackActiveFrameEnd = 5;
 
         if (animationIndex < attackActiveFrameStart || animationIndex > attackActiveFrameEnd) {
             return null;
         }
 
-        float attackWidth = 40 * game.SCALE;
-        float attackHeight = box.height * 0.8f;
+        // Improved hitbox - larger and better positioned for accurate hits
+        float attackWidth = 45 * game.SCALE;
+        float attackHeight = box.height * 0.85f;
         float attackY = box.y + (box.height - attackHeight) / 2;
         float attackX;
 
         if (walkDir == LEFT) {
-            attackX = box.x - attackWidth + 10; // Slight overlap with enemy
+            attackX = box.x - attackWidth;
         } else {
-            attackX = box.x + box.width - 10; // Slight overlap with enemy
+            attackX = box.x + box.width;
         }
 
         return new Rectangle2D.Float(attackX, attackY, attackWidth, attackHeight);

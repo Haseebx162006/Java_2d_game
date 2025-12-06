@@ -36,9 +36,7 @@ public class EnemyMangerclass {
     }
 
     private void drawCrbbies(Graphics g, int levelxoffset) {
-        System.out.println("Drawing " + crabbies.size() + " enemies, offset: " + levelxoffset); // DEBUG
         for (Enemy1 c: crabbies){
-            System.out.println("Drawing enemy at: " + (c.getBox().x - levelxoffset) + ", " + c.getBox().y); // DEBUG
             g.drawImage(Enemy_images[c.getState_of_enemy()][c.getAnimationIndex()],(int)c.getBox().x-levelxoffset,(int)c.getBox().y,ENEMY1_WIDTH,ENEMY1_HEIGHT,null);
         }
     }
@@ -46,8 +44,6 @@ public class EnemyMangerclass {
         // Create a NEW ArrayList with copies of the enemies, don't use the same reference!
         crabbies = new ArrayList<>(level.getCrabs());
 
-        // DEBUG: Print how many enemies were loaded
-        System.out.println("Enemies loaded: " + crabbies.size());
 
         // Ensure every enemy knows about the level data for collision & movement
         loadLevelData(level.getLvlData());
@@ -90,9 +86,19 @@ public class EnemyMangerclass {
 
     // Check if player's attack hits any enemy
     public void checkPlayerAttack(Rectangle2D.Float attackBox) {
+        if (attackBox == null) {
+            return;
+        }
+        
+        // Check all enemies and hit the first valid one (prevents multiple hits per frame)
         for (Enemy1 enemy : crabbies) {
-            if (!enemy.isDead() && attackBox.intersects(enemy.getBox())) {
-                enemy.takeDamage(25);
+            if (!enemy.isDead() && !enemy.isHit()) {
+                // Use more precise hit detection - check if attack box intersects enemy hitbox
+                if (attackBox.intersects(enemy.getBox())) {
+                    enemy.takeDamage(25);
+                    // Only hit one enemy per attack frame for better feel
+                    return;
+                }
             }
         }
     }
@@ -102,15 +108,11 @@ public class EnemyMangerclass {
         for (Enemy1 enemy : crabbies) {
             if (!enemy.isDead()) {
                 Rectangle2D.Float enemyAttackBox = enemy.getAttackHitbox();
-                if (enemyAttackBox != null) {
-                    System.out.println("Enemy attack box: " + enemyAttackBox); // DEBUG
-                    System.out.println("Player box: " + player.getBox()); // DEBUG
-                    System.out.println("Intersects: " + enemyAttackBox.intersects(player.getBox())); // DEBUG
-
-                    if (enemyAttackBox.intersects(player.getBox())) {
-                        System.out.println("PLAYER HIT!"); // DEBUG
-                        player.takeDamage(5);
-                    }
+                if (enemyAttackBox != null && enemyAttackBox.intersects(player.getBox())) {
+                    // Pass enemy position for proper knockback direction
+                    player.takeDamage(5, enemy.getBox().x);
+                    // Only allow one hit per enemy attack animation
+                    return; // Prevent multiple enemies hitting in same frame
                 }
             }
         }
