@@ -101,6 +101,8 @@ public  class features {
         }
         public  static class Enemies{
             public static final int ENEMY_1=0;
+            public static final int PINKSTAR=1;
+            public static final int SHARK = 2;
             public static  final int IDLE=0;
             public static  final int RUNNING=1;
             public static  final int ATTACK=2;
@@ -114,24 +116,36 @@ public  class features {
             public static final int ENEMY1_HEIGHT=(int)(ENEMY1_HEIGHT_DEFAULT*game.SCALE);
             public static final int ENEMY1_X=(int)(26*game.SCALE);
             public static final int ENEMY1_Y=(int)(9*game.SCALE);
-            public static final int SPRITE(int enemy_type,int enemy_state){
-                switch (enemy_type){
-                    case ENEMY_1 :
-                        switch (enemy_state){
-                            case IDLE:
-                                return 9;
-                            case RUNNING:
-                                return 6;
-                            case ATTACK:
-                                return 7;
-                            case HIT:
-                                return 4;
-                            case DEAD:
-                                return 5;
-                        }
+            public static final int SHARK_WIDTH_DEFAULT = 34;
+            public static final int SHARK_HEIGHT_DEFAULT = 30;
+            public static final int SHARK_WIDTH = (int) (SHARK_WIDTH_DEFAULT * game.SCALE);
+            public static final int SHARK_HEIGHT = (int) (SHARK_HEIGHT_DEFAULT * game.SCALE);
+            public static final int SHARK_DRAWOFFSET_X = (int) (8 * game.SCALE);
+            public static final int SHARK_DRAWOFFSET_Y = (int) (6 * game.SCALE);
+
+            public static int SPRITE(int enemy_type, int enemy_state) {
+                switch (enemy_state) {
+                    case IDLE:
+                        if (enemy_type == ENEMY_1)
+                            return 9;
+                        else if (enemy_type == PINKSTAR || enemy_type == SHARK)
+                            return 8;
+                        return 0;
+                    case RUNNING:
+                        return 6;
+                    case ATTACK:
+                        if (enemy_type == SHARK)
+                            return 8;
+                        return 7;
+                    case HIT:
+                        return 4;
+                    case DEAD:
+                        return 5;
                 }
+
                 return 0;
             }
+
         }
     }
     public static class player_features{

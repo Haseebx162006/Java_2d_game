@@ -41,18 +41,24 @@ public class LoadSave {
     public static final String GRASS_ATLAS = "grass_atlas.png";
     public static final String TREE_ONE_ATLAS = "tree_one_atlas.png";
     public static final String TREE_TWO_ATLAS = "tree_two_atlas.png";
+    public static final String SHARK_PNG = "shark_atlas.png";
    public static BufferedImage GetAtlas(String fileName){
         BufferedImage img=null;
         InputStream is = LoadSave.class.getResourceAsStream("/"+fileName);
+        if (is == null) {
+            throw new RuntimeException("Resource not found: /" + fileName + ". Please ensure the file exists in the resources folder.");
+        }
         try {
             img= ImageIO.read(is);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error reading image file: /" + fileName, e);
         }finally {
             try {
-                is.close();
+                if (is != null) {
+                    is.close();
+                }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error closing input stream for: /" + fileName, e);
             }
         }
         return img;

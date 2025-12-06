@@ -532,10 +532,10 @@ public class Player extends  Entity{
         if (Animation_tick>=Animation_Speed){
             Animation_tick=0;
             Animation_index++;
-            if (Animation_index>=GetPlayerMove(Playermove)){
+            if (Animation_index>=Function.features.player_features.GetPlayerMove(Playermove)){
                 // For death animation, stay on last frame instead of looping
                 if (isDead && Playermove == GROUND) {
-                    Animation_index = GetPlayerMove(Playermove) - 1;
+                    Animation_index = Function.features.player_features.GetPlayerMove(Playermove) - 1;
                 } else {
                     Animation_index=0;
                     attacking=false;

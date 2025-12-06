@@ -1,29 +1,24 @@
 package GameLevels;
 
 import Entities.Enemy1;
-import Function.LoadSave;
-import Function.StaticMethodsforMovement;
+import Entities.Shark;
 import Function.features;
 import Rewards.*;
 import Rewards.Container;
 import main.game;
 
-import javax.script.ScriptEngine;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import static Function.StaticMethodsforMovement.GetLevelData;
-import static Function.StaticMethodsforMovement.getEnemyCrab;
 import static Function.features.Objects.*;
-import static Function.features.UI.Enemies.ENEMY_1;
+import static Function.features.UI.Enemies.*;
 
 public class Level {
     private BufferedImage img;
     private int[][] lvlData;
 
     private ArrayList<Enemy1> crabs = new ArrayList<>();
-  //  private ArrayList<Pinkstar> pinkstars = new ArrayList<>();
-  //  private ArrayList<Shark> sharks = new ArrayList<>();
+    private ArrayList<Shark> sharks = new ArrayList<>();
     private ArrayList<Potions> potions = new ArrayList<>();
     private ArrayList<Arrow> arrows = new ArrayList<>();
     private ArrayList<Container> containers = new ArrayList<>();
@@ -80,8 +75,7 @@ public class Level {
     private void loadEntities(int greenValue, int x, int y) {
         switch (greenValue) {
             case ENEMY_1 -> crabs.add(new Enemy1(x * game.TILE_SIZE, y * game.TILE_SIZE));
-          //  case PINKSTAR -> pinkstars.add(new Pinkstar(x * Game.TILES_SIZE, y * Game.TILES_SIZE));
-         //   case SHARK -> sharks.add(new Shark(x * Game.TILES_SIZE, y * Game.TILES_SIZE));
+            case SHARK -> sharks.add(new Shark(x * game.TILE_SIZE, y * game.TILE_SIZE));
             case 100 -> playerSpawn = new Point(x * game.TILE_SIZE, y * game.TILE_SIZE);
         }
     }
@@ -105,6 +99,10 @@ public class Level {
 
     public ArrayList<Enemy1> getCrabs() {
         return crabs;
+    }
+    
+    public ArrayList<Shark> getSharks() {
+        return sharks;
     }
 
     public ArrayList<Potions> getPotions() {
