@@ -168,6 +168,7 @@ public class Playing extends State implements Methods{
         // Check enemy attacks on player
         enemyMangerclass.checkEnemyAttacks(player);
     }
+    
 
     private void checkBorder() {
         int playerX= (int) player.getBox().x;

@@ -2,17 +2,14 @@ package Rewards;
 
 import Entities.Player;
 import Function.LoadSave;
-import Function.features;
 import GameLevels.Level;
 import State.Playing;
 import main.game;
 
-import javax.sound.sampled.Port;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Spliterator;
 
 import static Function.StaticMethodsforMovement.CanCannonSeePlayer;
 import static Function.StaticMethodsforMovement.IsProjectileHittingLevel;
@@ -75,7 +72,7 @@ public class Objects_Manager {
     public void checkTrap(Player s){
         for (Arrow a : arrows){
             if (a.getBox().intersects(s.getBox())){
-              s.KillPlayer();
+                s.KillPlayer();
             }
 
         }
@@ -122,38 +119,75 @@ public class Objects_Manager {
     }
 
     private void updateProjectile(int[][] levelData, Player player) {
-        for (Ball b: balls)
+        for (Ball b: balls) {
             if (b.isActive()) {
-                b.updatePos();
-                if (b.getBox().intersects(player.getBox())) {
+                b.updatePos(levelData);
+                // Only check collision if ball can damage (prevents instant hit on creation)
+                if (b.canDamage() && b.getBox().intersects(player.getBox())) {
                     player.changeHealth(-25);
                     b.setActive(false);
-                } else if (IsProjectileHittingLevel(b, levelData))
+                } else if (IsProjectileHittingLevel(b, levelData)) {
                     b.setActive(false);
+                }
             }
+        }
+        
+        // Remove inactive balls after processing to prevent memory issues
+        balls.removeIf(b -> !b.isActive());
     }
 
     private void updateCannon(int[][] leveldata,Player player) {
         for (CannonGun c : cannonGuns) {
-            if (!c.Animation)
-                if (c.getTileYaxis() == player.getTileY())
-                    if (isPlayerInRange(c, player))
-                        if (isPlayerInfrontOfCannon(c, player))
-                            if (CanCannonSeePlayer(leveldata, player.getBox(), c.getBox(), c.getTileYaxis()))
+            // Check if cannon should start firing (only when not already animating)
+            if (!c.Animation) {
+                // Check if player is on the same Y level (allow 2 tile tolerance for better detection)
+                // Use actual cannon box Y position instead of TileYaxis for accurate comparison
+                int playerTileY = (int)(player.getBox().y / game.TILE_SIZE);
+                int cannonTileY = (int)(c.getBox().y / game.TILE_SIZE);
+                
+                if (Math.abs(playerTileY - cannonTileY) <= 2) {
+                    if (isPlayerInRange(c, player)) {
+                        if (isPlayerInfrontOfCannon(c, player)) {
+                            // Use average Y tile for line-of-sight check (between cannon and player)
+                            int avgTileY = (playerTileY + cannonTileY) / 2;
+                            if (CanCannonSeePlayer(leveldata, player.getBox(), c.getBox(), avgTileY)) {
                                 c.setAnimation(true);
+                                c.setHasFired(false); // Reset fire flag when starting new animation
+                            }
+                        }
+                    }
+                }
+            }
 
+            // Check animation index before update to detect frame transitions
+            int prevAnimationIndex = c.getAnimationIndex();
+            
+            // Update cannon animation
             c.update();
-            if (c.getAnimationIndex() == 4 && c.getAnimationTick() == 0)
-                shootCannon(c);
+            
+            // Fire cannon ball when entering frame 4 (transition from frame 3 to 4)
+            // Also fire if already on frame 4 with low tick (early in frame) and hasn't fired yet
+            int currentIndex = c.getAnimationIndex();
+            int currentTick = c.getAnimationTick();
+            
+            if (!c.getHasFired()) {
+                boolean justEnteredFrame4 = (prevAnimationIndex == 3 && currentIndex == 4);
+                boolean onFrame4Early = (currentIndex == 4 && currentTick < 5);
+                
+                if (justEnteredFrame4 || onFrame4Early) {
+                    shootCannon(c);
+                    c.setHasFired(true); // Mark as fired to prevent multiple shots
+                }
+            }
         }
 
     }
     private boolean isPlayerInRange(CannonGun c, Player player) {
+        // Increased range to 8 tiles to allow cannons to fire from farther away
         int absValue = (int) Math.abs(player.getBox().x - c.getBox().x);
-        return absValue <= game.TILE_SIZE * 5;
+        return absValue <= game.TILE_SIZE * 8;
     }
     private void shootCannon(CannonGun c) {
-        c.setAnimation(true);
         int direction=1;
         if (c.getObjType()==CANNON_LEFT){
             direction=-1;
@@ -161,17 +195,21 @@ public class Objects_Manager {
 
         Ball newBall = new Ball((int)(c.getBox().x),(int)(c.getBox().y),direction);
         balls.add(newBall);
-
-
     }
 
     private boolean isPlayerInfrontOfCannon(CannonGun c, Player player) {
+        float cannonCenterX = c.getBox().x + c.getBox().width / 2;
+        float playerCenterX = player.getBox().x + player.getBox().width / 2;
+        
         if (c.getObjType() == CANNON_LEFT) {
-            if (c.getBox().x > player.getBox().x)
-                return true;
-
-        } else if (c.getBox().x < player.getBox().x)
-            return true;
+            // Cannon facing left, player must be to the left of cannon
+            // Also ensure player is not behind the cannon (player center should be to the left)
+            return playerCenterX < cannonCenterX;
+        } else if (c.getObjType() == CANNON_RIGHT) {
+            // Cannon facing right, player must be to the right of cannon
+            // Also ensure player is not behind the cannon (player center should be to the right)
+            return playerCenterX > cannonCenterX;
+        }
         return false;
     }
 

@@ -1,3 +1,4 @@
+
 package Function;
 import Entities.Enemy1;
 import Rewards.*;
@@ -193,19 +194,45 @@ public class StaticMethodsforMovement {
     }
 
     public static boolean CanCannonSeePlayer(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int yTile) {
-        Object Game;
-        int firstXTile = (int) (firstHitbox.x / game.TILE_SIZE);
-        int secondXTile = (int) (secondHitbox.x / game.TILE_SIZE);
+        // Use center X coordinates for more accurate line-of-sight
+        float firstCenterX = firstHitbox.x + firstHitbox.width / 2;
+        float secondCenterX = secondHitbox.x + secondHitbox.width / 2;
+        
+        int firstXTile = (int) (firstCenterX / game.TILE_SIZE);
+        int secondXTile = (int) (secondCenterX / game.TILE_SIZE);
 
         if (firstXTile > secondXTile)
             return IsAllTilesClear(secondXTile, firstXTile, yTile, lvlData);
         else
             return IsAllTilesClear(firstXTile, secondXTile, yTile, lvlData);
     }
-    public static boolean IsAllTilesClear(int xStart, int xEnd, int y, int[][] lvlData) {
-        for (int i = 0; i < xEnd - xStart; i++)
-            if (IsSolid(xStart + i, y, lvlData))
-                return false;
+    public static boolean IsAllTilesClear(int xStart, int xEnd, int yTile, int[][] lvlData) {
+        // Check all tiles between start and end at the given Y tile
+        // Check the main Y level and one tile above/below to account for height differences
+        for (int yOffset = -1; yOffset <= 1; yOffset++) {
+            int checkYTile = yTile + yOffset;
+            // Make sure we don't go out of bounds
+            if (checkYTile < 0 || checkYTile >= lvlData.length) {
+                continue;
+            }
+            
+            for (int x = xStart; x <= xEnd; x++) {
+                // Make sure we don't go out of bounds
+                if (x < 0 || x >= lvlData[0].length) {
+                    continue;
+                }
+                
+                // Check if tile is solid (not empty/air)
+                int value = lvlData[checkYTile][x];
+                if (value != 11) { // 11 is air/empty
+                    // Block line of sight if there's a solid tile at the main Y level
+                    // or if there's a solid tile blocking the path between cannon and player
+                    if (yOffset == 0) {
+                        return false;
+                    }
+                }
+            }
+        }
         return true;
     }
 }

@@ -1,6 +1,8 @@
 package Entities;
 import main.game;
 
+import java.awt.geom.Rectangle2D;
+
 import static Function.StaticMethodsforMovement.*;
 import static Function.StaticMethodsforMovement.CanMove;
 import static Function.features.PlayerDirectons.*;
@@ -77,9 +79,15 @@ public class Enemy1 extends Enemy{
                 } else {
                     walkDir = RIGHT;
                 }
-                if (canAttackPlayer()) {
-                    State_of_enemy = ATTACK;
-                    attackCooldown = ATTACK_COOLDOWN_TIME;
+                float distanceToPlayer = Math.abs(player.getBox().x - box.x);
+                boolean isFacingPlayer = (player.getBox().x < box.x && walkDir == LEFT) || 
+                                       (player.getBox().x > box.x && walkDir == RIGHT);
+                
+                if (canAttackPlayer() && distanceToPlayer < 50 * game.SCALE && isFacingPlayer) {
+                    if (attackCooldown <= 0) {
+                        State_of_enemy = ATTACK;
+                        attackCooldown = ATTACK_COOLDOWN_TIME;
+                    }
                 } else if (State_of_enemy != ATTACK && State_of_enemy != HIT) {
                     // Chase player
                     State_of_enemy = RUNNING;
@@ -115,16 +123,29 @@ public class Enemy1 extends Enemy{
                             boolean floorAhead = isFloorAhead(Speed, levelData);
 
                             if (canMoveHorizontally && floorAhead) {
-                                box.x = newX;
-                            } else {
-
-                                ChangeDirection();
-                            }
+                    // Check if moving would cause overlap with player
+                    Rectangle2D.Float tempBox = new Rectangle2D.Float(
+                        newX, 
+                        box.y, 
+                        box.width, 
+                        box.height
+                    );
+                    
+                    if (!tempBox.intersects(player.getBox())) {
+                        box.x = newX;
+                    } else {
+                        // If we would overlap, stop moving and attack if possible
+                        if (canAttackPlayer() && attackCooldown <= 0) {
+                            State_of_enemy = ATTACK;
+                            attackCooldown = ATTACK_COOLDOWN_TIME;
                         }
-                        break;
+                    }
+                } else {
+                    ChangeDirection();
+                }            }
+                        }
                 }
             }
         }
     }
 
-}

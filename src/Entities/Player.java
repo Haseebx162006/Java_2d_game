@@ -17,7 +17,7 @@ public class Player extends  Entity{
     private static final boolean DEBUG_HITBOX = false;
     private float XOffset;// these offset variables are for the collision box
     private float YOffset;
-    private static final float FOOT_ADJUST = 8f * game.SCALE;
+    private static final float FOOT_ADJUST = 12f * game.SCALE;
     private float Gravity= 0.04f*game.SCALE;
     private int Animation_tick,Animation_index,Animation_Speed=10;
     private int Playermove=STANDING;
@@ -72,7 +72,7 @@ public class Player extends  Entity{
         super(x, y,width,height);
         this.playing=playing;
         load_Animations();
-        CreateBox(x,y,game.SCALE*24,game.SCALE*29);
+        CreateBox(x,y,game.SCALE*20,game.SCALE*29);
         XOffset = (width - box.width) / 2f;
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
     }
@@ -90,18 +90,23 @@ public class Player extends  Entity{
             updateDeathAnimation();
             return;
         }
+
+        UpdatePosition();
         
-        // Check for water collision
+        // Check for water collision after position update to catch movement into water
         if (IsEntityInWater(box, playing.getLevelManager().getLevel().getLvlData())) {
             KillPlayer();
             return;
         }
-
-        UpdatePosition();
+        
         playing.checkObjectHit(box);
+        
+        // Always check for spikes/arrows regardless of movement (player can fall onto them)
+        checkArrowChecked();
+        
+        // Always check for potions when moving horizontally
         if (Player_is_moving) {
             checkPotiontouched();
-            checkArrowChecked();
             tileY=(int)(box.y/game.TILE_SIZE);
         }
         updateCombat();
@@ -258,16 +263,16 @@ public class Player extends  Entity{
             return null;
         }
         
-        float attackWidth = 50 * game.SCALE; // Slightly wider hitbox
-        float attackHeight = box.height * 0.8f; // Slightly shorter than player height
+        float attackWidth = 30 * game.SCALE; // Reduced width for more precise hit detection
+        float attackHeight = box.height * 0.6f; // Slightly shorter than player height
         float attackY = box.y + (box.height - attackHeight) / 2; // Center vertically
         float attackX;
         
         // Attack hitbox extends in the direction player is facing
         if (attackDirection == LEFT) {
-            attackX = box.x - attackWidth + 10; // Slight overlap with player
+            attackX = box.x - attackWidth + 5; // Reduced overlap with player
         } else {
-            attackX = box.x + box.width - 10; // Slight overlap with player
+            attackX = box.x + box.width - 5; // Reduced overlap with player
         }
         
         return new Rectangle2D.Float(attackX, attackY, attackWidth, attackHeight);

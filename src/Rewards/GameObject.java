@@ -115,6 +115,9 @@ public class GameObject {
                 if (objType == BARREL || objType == BOX) {
                     Animation= false;
                     Active= false;
+                } else if (objType == CANNON_LEFT || objType == CANNON_RIGHT) {
+                    // Reset cannon animation after firing cycle completes
+                    Animation = false;
                 }
             }
         }

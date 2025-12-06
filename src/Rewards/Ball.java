@@ -10,6 +10,7 @@ public class Ball {
     private Rectangle2D.Float box;
     private int direction;
     private boolean active=true;
+    private boolean canDamage = false; // Prevent instant damage on creation
 
     public Ball(int x, int y, int direction){
         int xOff=(int)(-3* game.SCALE);
@@ -26,17 +27,25 @@ public class Ball {
 
         box.y=y;
     }
-    public void updatePos() {
+    public void updatePos(int[][] levelData) {
         box.x += direction * SPEED;
-        // Ball ko inactive karo agar screen se bahar chali gayi
-        if (box.x < -CANNON_BALL_WIDTH || box.x > game.GAME_WIDTH) {
-            active = false;
+        // Enable damage after first movement to prevent instant collision
+        canDamage = true;
+        
+        // Don't deactivate based on screen boundaries - balls use world coordinates
+        // Balls will be deactivated by level collision or hitting player
+        // Only deactivate if ball falls way below level (safety check)
+        if (levelData != null && levelData.length > 0) {
+            int maxLevelHeight = levelData.length * game.TILE_SIZE;
+            // Only deactivate if ball falls way below the level
+            if (box.y > maxLevelHeight + game.TILE_SIZE * 5) {
+                active = false;
+            }
         }
-
-        // Optional: Y-axis check bhi (agar ball neeche gir sakti hai)
-        if (box.y > game.GAME_HEIGHT) {
-            active = false;
-        }
+    }
+    
+    public boolean canDamage() {
+        return canDamage;
     }
 
     public Rectangle2D.Float getBox() {
