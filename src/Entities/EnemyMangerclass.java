@@ -195,8 +195,12 @@ public class EnemyMangerclass {
             }
         }
         // Only complete level if there were enemies AND they're all dead
+        // Also check that we're not already in a completed state to prevent false triggers
         if ((crabbies.size() > 0 || sharks.size() > 0 || stars.size()>0) && !anyEnemyAlive){
-            playing.setLevelCompleted(true);
+            // Only set completed if not already completed (prevents re-triggering)
+            if (!playing.isLevelCompleted()) {
+                playing.setLevelCompleted(true);
+            }
         }
     }
 

@@ -62,9 +62,48 @@ public class Playing extends State implements Methods{
         }
     }
     public void LoadNextLevel(){
+        // Reset completion flag FIRST before loading next level
+        level_Complete = false;
+        
         // Don't increment here - loadnextLevel() already handles the increment
         levelManager.loadnextLevel();
-        resetGame();
+        
+        // Check if we've completed all levels (loadnextLevel returns early if so)
+        if (levelManager.getLevel_Index() == 0 && GameState.gameState == GameState.MENU) {
+            return; // All levels completed, already returned to menu
+        }
+        
+        // Reset game state for next level (but keep the level index)
+        showGameOver = false;
+        gameOverTimer = 0;
+        levelxOffset = 0;
+        paused = false;
+        
+        // Reset player for new level
+        player.reset();
+        player.LoadlevelData(levelManager.getLevel().getLvlData());
+        
+        // Set player spawn position for new level
+        Point spawnPoint = levelManager.getLevel().getPlayerSpawn();
+        if (spawnPoint != null) {
+            player.setSpawn(spawnPoint);
+        }
+        
+        // Reset enemies and objects for new level
+        // IMPORTANT: Reset completion flag BEFORE resetting enemies to prevent false completion
+        level_Complete = false;
+        
+        // Reset and reload enemies for new level
+        enemyMangerclass.resetEnemies();
+        enemyMangerclass.addEnemies(levelManager.getLevel());
+        enemyMangerclass.loadLevelData(levelManager.getLevel().getLvlData());
+        
+        objectsManager.resetAllObjects();
+        objectsManager.loadObject(levelManager.getLevel());
+        
+        // Recalculate level offset for new level
+        calculateLevelOffset();
+        
         drawShip = false;
         // Play level music for new level
         if (Game.getAudioPlayer() != null) {
@@ -100,19 +139,48 @@ public class Playing extends State implements Methods{
 
     public void resetGame() {
         // Reset game state for replay
+        // NOTE: This resets to level 0 - use resetCurrentLevel() to restart current level
+        resetGame(true);
+    }
+    
+    public void resetGame(boolean resetToFirstLevel) {
+        // Reset game state for replay
         showGameOver = false;
         gameOverTimer = 0;
         levelxOffset = 0;
         paused = false;
 
         level_Complete=false;
+        
+        // Only reset level index to first level (0) when starting a completely new game from menu
+        // If resetToFirstLevel is false, keep the current level index
+        if (resetToFirstLevel) {
+            levelManager.setLevel_Index(0);
+        }
+        calculateLevelOffset();
+        
         player.reset();
         player.LoadlevelData(levelManager.getLevel().getLvlData());
 
         // Reset enemies - MUST RE-ADD THEM!
         enemyMangerclass.resetEnemies(); // Clears the list
         enemyMangerclass.addEnemies(levelManager.getLevel());
+        enemyMangerclass.loadLevelData(levelManager.getLevel().getLvlData());
         objectsManager.resetAllObjects();
+        
+        // Reset objects for the current level
+        objectsManager.loadObject(levelManager.getLevel());
+        
+        // Set player spawn position for current level
+        Point spawnPoint = levelManager.getLevel().getPlayerSpawn();
+        if (spawnPoint != null) {
+            player.setSpawn(spawnPoint);
+        }
+    }
+    
+    public void resetCurrentLevel() {
+        // Reset only the current level (used when player dies and wants to retry)
+        resetGame(false);
     }
     public Player getPlayer(){
         return player;
@@ -129,8 +197,9 @@ public class Playing extends State implements Methods{
         if (showGameOver) {
             gameOverTimer++;
             if (gameOverTimer >= GAME_OVER_DISPLAY_TIME) {
-                // Return to menu after showing game over
-                GameState.gameState = GameState.MENU;
+                // Restart the current level instead of going to menu
+                // This allows player to retry the level they died on
+                resetCurrentLevel();
                 showGameOver = false;
                 gameOverTimer = 0;
             }
@@ -397,6 +466,10 @@ public class Playing extends State implements Methods{
         if (levelComppleted && Game.getAudioPlayer() != null) {
             Game.getAudioPlayer().lvlCompleted();
         }
+    }
+    
+    public boolean isLevelCompleted() {
+        return level_Complete;
     }
 
     public void checkObjectHit(Rectangle2D.Float box) {

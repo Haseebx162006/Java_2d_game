@@ -146,23 +146,20 @@ public class LevelManager {
         // Check if we've completed all levels
         if (Level_Index >= levels.size()){
             System.out.println("All Levels Completed! Total levels: " + levels.size());
-            // Don't reset to 0, just go back to menu
+            // Reset to first level (0) so next playthrough starts from beginning
+            Level_Index = 0;
             GameState.gameState=GameState.MENU;
             return;
         }
         
         // Load the next level
         Level newLevel=levels.get(Level_Index);
-        Game.getPlaying().getEnemyMangerclass().addEnemies(newLevel);
+        
+        // Don't add enemies here - LoadNextLevel() will handle it after resetting
+        // This prevents duplicate enemy additions and ensures clean state
         Game.getPlaying().getPlayer().LoadlevelData(newLevel.getLvlData());
         Game.getPlaying().setLevelOffset(newLevel.getMaxLvlOffsetX());
         Game.getPlaying().getObjectsManager().loadObject(newLevel);
-        
-        // Set player spawn position for new level
-        Point spawnPoint = newLevel.getPlayerSpawn();
-        if (spawnPoint != null) {
-            Game.getPlaying().getPlayer().setSpawn(spawnPoint);
-        }
         
         System.out.println("Loading level " + (Level_Index + 1) + " of " + levels.size());
     }

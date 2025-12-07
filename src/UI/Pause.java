@@ -83,7 +83,8 @@ public class Pause {
             }
         } else if (isIn(e, replayButton)) {
             if (replayButton.isMousePressed()) {
-                playing.resetGame();
+                // Replay current level, don't reset to level 0
+                playing.resetCurrentLevel();
                 playing.unpaused();
             }
         } else if (isIn(e, unpauseButton)) {
