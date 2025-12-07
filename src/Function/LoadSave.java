@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class LoadSave {
     public static final String PlayerImgAddress="p2.png";
@@ -42,6 +43,8 @@ public class LoadSave {
     public static final String TREE_ONE_ATLAS = "tree_one_atlas.png";
     public static final String TREE_TWO_ATLAS = "tree_two_atlas.png";
     public static final String SHARK_PNG = "shark_atlas.png";
+    public static final String PINKENEMY_PNG = "pinkstar_atlas.png";
+    public static final String OPTIONS_IMG = "options_background.png";
    public static BufferedImage GetAtlas(String fileName){
         BufferedImage img=null;
         InputStream is = LoadSave.class.getResourceAsStream("/"+fileName);
@@ -71,27 +74,78 @@ public class LoadSave {
             file = new File(url.toURI());
         } catch (URISyntaxException e) {
             e.printStackTrace();
+            return new BufferedImage[0];
+        }
+
+        if (file == null || !file.exists() || !file.isDirectory()) {
+            System.err.println("Level directory not found: /lvls");
+            return new BufferedImage[0];
         }
 
         File[] files = file.listFiles();
-        File[] filesSorted = new File[files.length];
+        if (files == null) {
+            return new BufferedImage[0];
+        }
 
-        for (int i = 0; i < filesSorted.length; i++)
-            for (int j = 0; j < files.length; j++) {
-                if (files[j].getName().equals((i + 1) + ".png"))
-                    filesSorted[i] = files[j];
-
+        // Find the maximum level number by checking all files
+        int maxLevel = 0;
+        for (File f : files) {
+            if (f.isFile() && f.getName().endsWith(".png")) {
+                try {
+                    String name = f.getName().replace(".png", "");
+                    int levelNum = Integer.parseInt(name);
+                    if (levelNum > maxLevel) {
+                        maxLevel = levelNum;
+                    }
+                } catch (NumberFormatException e) {
+                    // Skip files that don't match the pattern
+                }
             }
+        }
 
-        BufferedImage[] imgs = new BufferedImage[filesSorted.length];
+        if (maxLevel == 0) {
+            System.err.println("No valid level files found in /lvls");
+            return new BufferedImage[0];
+        }
 
-        for (int i = 0; i < imgs.length; i++)
-            try {
-                imgs[i] = ImageIO.read(filesSorted[i]);
-            } catch (IOException e) {
-                e.printStackTrace();
+        // Create a map to quickly find files by name
+        HashMap<String, File> fileMap = new HashMap<>();
+        for (File f : files) {
+            if (f.isFile() && f.getName().endsWith(".png")) {
+                fileMap.put(f.getName(), f);
             }
+        }
 
+        // Load all levels from 1 to maxLevel in order
+        java.util.ArrayList<BufferedImage> levelList = new java.util.ArrayList<>();
+        
+        for (int i = 1; i <= maxLevel; i++) {
+            String fileName = i + ".png";
+            File levelFile = fileMap.get(fileName);
+            
+            if (levelFile != null && levelFile.exists()) {
+                try {
+                    BufferedImage img = ImageIO.read(levelFile);
+                    if (img != null) {
+                        levelList.add(img);
+                        System.out.println("Successfully loaded level: " + fileName);
+                    } else {
+                        System.err.println("Failed to read level file (returned null): " + fileName);
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error reading level file: " + fileName);
+                    e.printStackTrace();
+                }
+            } else {
+                System.err.println("Level file not found: " + fileName);
+            }
+        }
+
+        // Convert ArrayList to array
+        BufferedImage[] imgs = new BufferedImage[levelList.size()];
+        levelList.toArray(imgs);
+
+        System.out.println("Total levels loaded: " + imgs.length + " out of " + maxLevel + " expected");
         return imgs;
     }
 

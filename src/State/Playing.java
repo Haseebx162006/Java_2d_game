@@ -5,6 +5,7 @@ import Entities.Player;
 import Function.LoadSave;
 import GameLevels.LevelManager;
 import Rewards.Objects_Manager;
+import Sounds.AudioPlayer;
 import UI.CompleteLevelBanner;
 import UI.Pause;
 import main.game;
@@ -41,8 +42,10 @@ public class Playing extends State implements Methods{
     private boolean showGameOver = false;
     private int gameOverTimer = 0;
     private static final int GAME_OVER_DISPLAY_TIME = 180; // frames before returning to menu
+    private game Game;
     public Playing(game game1){
         super(game1);
+        this.Game = game1;
         initClasses();
         background=LoadSave.GetAtlas(LoadSave.BACKGROUND_IMAGE);
         bigCloud=LoadSave.GetAtlas(LoadSave.BIG_CLOUD);
@@ -53,13 +56,20 @@ public class Playing extends State implements Methods{
         }
         calculateLevelOffset();
         loadFirstlevel();
+        // Play level music when entering playing state
+        if (game1.getAudioPlayer() != null && levelManager != null) {
+            game1.getAudioPlayer().setLevelSong(levelManager.getLevel_Index());
+        }
     }
     public void LoadNextLevel(){
-        levelManager.setLevel_Index(levelManager.getLevel_Index() + 1);
+        // Don't increment here - loadnextLevel() already handles the increment
         levelManager.loadnextLevel();
-        //player.(levelManager.getCurrentLevel().getPlayerSpawn());
         resetGame();
         drawShip = false;
+        // Play level music for new level
+        if (Game.getAudioPlayer() != null) {
+            Game.getAudioPlayer().setLevelSong(levelManager.getLevel_Index());
+        }
     }
     private void loadFirstlevel() {
         enemyMangerclass.addEnemies(levelManager.getLevel());
@@ -74,7 +84,13 @@ public class Playing extends State implements Methods{
         levelManager= new LevelManager(game1);
         enemyMangerclass= new EnemyMangerclass(this);
         objectsManager= new Objects_Manager(this);
-        player= new Player(200,200, (int) (64* game.SCALE),(int)(40*game.SCALE),this);
+        
+        // Get spawn point from level, or use default if not set
+        Point spawnPoint = levelManager.getLevel().getPlayerSpawn();
+        if (spawnPoint == null) {
+            spawnPoint = new Point(200, 200); // Default spawn
+        }
+        player= new Player(spawnPoint.x, spawnPoint.y, (int) (64* game.SCALE),(int)(40*game.SCALE),this);
         player.LoadlevelData(levelManager.getLevel().getLvlData());
         enemyMangerclass.loadLevelData(levelManager.getLevel().getLvlData());
         //enemyMangerclass.setPlayer(player); // Pass player reference to enemies
@@ -125,6 +141,10 @@ public class Playing extends State implements Methods{
             if (player.isDeathAnimationComplete() && !showGameOver) {
                 showGameOver = true;
                 gameOverTimer = 0;
+                // Play game over sound
+                if (Game.getAudioPlayer() != null) {
+                    Game.getAudioPlayer().playEffect(AudioPlayer.GAMEOVER);
+                }
             }
         }
         if (paused){
@@ -284,6 +304,10 @@ public class Playing extends State implements Methods{
         }
         if (e.getButton()==MouseEvent.BUTTON1){
             player.setAttack(true);
+            // Play attack sound
+            if (Game.getAudioPlayer() != null) {
+                Game.getAudioPlayer().playAttackSound();
+            }
         }
         if (e.getButton()==MouseEvent.BUTTON3){
             player.setJump(true);
@@ -369,7 +393,10 @@ public class Playing extends State implements Methods{
 
     public void setLevelCompleted(boolean levelComppleted) {
         this.level_Complete=levelComppleted;
-
+        // Play level completed sound
+        if (levelComppleted && Game.getAudioPlayer() != null) {
+            Game.getAudioPlayer().lvlCompleted();
+        }
     }
 
     public void checkObjectHit(Rectangle2D.Float box) {

@@ -24,6 +24,10 @@ public class keyboard_input implements KeyListener {
               break;
           case PLAYING:
               gamePanel.getGame1().getPlaying().KeyPressed(e);
+              break;
+          case OPTIONS:
+              gamePanel.getGame1().getOptions().KeyPressed(e);
+              break;
       }
     }
 

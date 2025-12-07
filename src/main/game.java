@@ -1,9 +1,12 @@
 package main;
 
 import Function.LoadSave;
+import Sounds.AudioPlayer;
 import State.GameState;
 import State.MENU;
+import State.OPTIONS;
 import State.Playing;
+import UI.Audio;
 
 import java.awt.*;
 
@@ -22,9 +25,11 @@ public class game implements Runnable{
     public static final int TILE_SIZE= (int)(TILE_DEFAULT_SIZE*SCALE);
     public static final int GAME_WIDTH= TILE_SIZE*TILE_WIDTH;
     public static final int GAME_HEIGHT= TILE_SIZE* TILE_HEIGHT;
-
+    private Audio audiobuttons;
     private Playing playing;
     private MENU Menue;
+    private OPTIONS options;
+    private AudioPlayer audioPlayer;
     //*********************************
     // Game constructor
     public game(){
@@ -38,8 +43,12 @@ public class game implements Runnable{
     }
     //*********************************
     private void initClasses(){
+        audioPlayer = new AudioPlayer();
+        audiobuttons= new Audio();
+        audiobuttons.setGame(this);
         Menue= new MENU(this);
         playing=new Playing(this);
+        options= new OPTIONS(this);
     }
     private void StartgameLoop(){
         gameThread= new Thread(this);
@@ -71,6 +80,10 @@ public class game implements Runnable{
         }
     }
 
+    public OPTIONS getOptions() {
+        return options;
+    }
+
     public synchronized  void UpdateGame() {
 
         switch (GameState.gameState){
@@ -80,11 +93,19 @@ public class game implements Runnable{
             case PLAYING:
                 playing.update();
                 break;
+            case OPTIONS:
+                options.update();
+                break;
             default:
                 break;
         }
 
     }
+
+    public Audio getAudiobuttons() {
+        return audiobuttons;
+    }
+
     public synchronized void RenderGraphicsGame(Graphics g){
         switch (GameState.gameState){
             case MENU:
@@ -92,6 +113,9 @@ public class game implements Runnable{
                 break;
             case PLAYING:
                 playing.draw(g);
+                break;
+            case OPTIONS:
+                options.draw(g);
                 break;
             case QUIT:
                 System.exit(0);
@@ -110,5 +134,9 @@ public class game implements Runnable{
         if (GameState.gameState==GameState.PLAYING){
             playing.getPlayer().ResetDirection();
         }
+    }
+
+    public AudioPlayer getAudioPlayer() {
+        return audioPlayer;
     }
 }

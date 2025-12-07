@@ -21,17 +21,22 @@ public class Objects_Manager {
     private BufferedImage[][] potionImgs,containerImgs;
     private BufferedImage[] Cannonimage;
     private BufferedImage arrowImage,cannonBallimg;
+    private BufferedImage[][] treeImgs; 
     private Playing playing;
+    private ArrayList<BackgroundTree> backgroundTrees;
     private ArrayList<Potions> potions;
     private ArrayList<Container> containers;
     private ArrayList<CannonGun> cannonGuns;
     private ArrayList<Arrow> arrows;
     private ArrayList<Ball> balls= new ArrayList<>();
+    private Level currentLevel;
     public Objects_Manager(Playing playing){
         this.playing=playing;
+        currentLevel=playing.getLevelManager().getLevel();
         LoadImgs();
         potions= new ArrayList<>();
         containers= new ArrayList<>();
+        backgroundTrees= new ArrayList<>();
     }
 
     private void LoadImgs() {
@@ -57,8 +62,17 @@ public class Objects_Manager {
             Cannonimage[i]=temp.getSubimage(i*40,0,40,26);
         }
         cannonBallimg=LoadSave.GetAtlas(LoadSave.BALL);
+        treeImgs = new BufferedImage[2][4];
+        BufferedImage treeOneImg = LoadSave.GetAtlas(LoadSave.TREE_ONE_ATLAS);
+        for (int i = 0; i < 4; i++)
+            treeImgs[0][i] = treeOneImg.getSubimage(i * 39, 0, 39, 92);
+
+        BufferedImage treeTwoImg = LoadSave.GetAtlas(LoadSave.TREE_TWO_ATLAS);
+        for (int i = 0; i < 4; i++)
+            treeImgs[1][i] = treeTwoImg.getSubimage(i * 62, 0, 62, 54);
 
     }
+
 
     public void checkTouch(Rectangle2D.Float box){
         for (Potions p: potions)
@@ -113,6 +127,11 @@ public class Objects_Manager {
         for (Container gc : containers)
             if (gc.isActive())
                 gc.update();
+        
+        // Update tree animations
+        for (BackgroundTree tree : backgroundTrees) {
+            tree.update();
+        }
 
         updateCannon(levelData,player);
         updateProjectile(levelData,player);
@@ -214,12 +233,24 @@ public class Objects_Manager {
     }
 
     public void draw(Graphics g, int xLvlOffset) {
+
+        drawBackgroundTrees(g,xLvlOffset);
         drawPotions(g,xLvlOffset);
         drawContainers(g, xLvlOffset);
-
         drawTrap1(g,xLvlOffset);
         drawCannons(g,xLvlOffset);
         drawBalls(g,xLvlOffset);
+    }
+
+    public void drawBackgroundTrees(Graphics g, int xLvlOffset) {
+        for (BackgroundTree bt : currentLevel.getTrees() ) {
+
+            int type = bt.getType();
+            if (type == 9)
+                type = 8;
+            g.drawImage(treeImgs[type - 7][bt.getAniIndex()], bt.getX() - xLvlOffset + GetTreeOffsetX(bt.getType()), (int) (bt.getY() + GetTreeOffsetY(bt.getType())), GetTreeWidth(bt.getType()),
+                    GetTreeHeight(bt.getType()), null);
+        }
     }
 
     private void drawBalls(Graphics g, int xLvlOffset) {
@@ -275,6 +306,7 @@ public class Objects_Manager {
         containers=new ArrayList<>(newLevel.getContainers());
         arrows= newLevel.getArrows();
         cannonGuns=newLevel.getCannons();
+        backgroundTrees = new ArrayList<>(newLevel.getTrees());
         balls.clear();
     }
 

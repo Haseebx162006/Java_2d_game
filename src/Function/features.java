@@ -55,6 +55,54 @@ public  class features {
         public static final int SPIKE_HEIGHT_DEFAULT = 32;
         public static final int SPIKE_WIDTH = (int) (game.SCALE * SPIKE_WIDTH_DEFAULT);
         public static final int SPIKE_HEIGHT = (int) (game.SCALE * SPIKE_HEIGHT_DEFAULT);
+        public static int GetTreeOffsetX(int treeType) {
+            switch (treeType) {
+                case TREE_ONE:
+                    return (game.TILE_SIZE / 2) - (GetTreeWidth(treeType) / 2);
+                case TREE_TWO:
+                    return (int) (game.TILE_SIZE / 2.5f);
+                case TREE_THREE:
+                    return (int) (game.TILE_SIZE / 1.65f);
+            }
+
+            return 0;
+        }
+
+        public static int GetTreeOffsetY(int treeType) {
+
+            switch (treeType) {
+                case TREE_ONE:
+                    return -GetTreeHeight(treeType) + game.TILE_SIZE * 2;
+                case TREE_TWO, TREE_THREE:
+                    return -GetTreeHeight(treeType) + (int) (game.TILE_SIZE / 1.25f);
+            }
+            return 0;
+
+        }
+
+        public static int GetTreeWidth(int treeType) {
+            switch (treeType) {
+                case TREE_ONE:
+                    return (int) (39 * game.SCALE);
+                case TREE_TWO:
+                    return (int) (62 * game.SCALE);
+                case TREE_THREE:
+                    return -(int) (62 * game.SCALE);
+
+            }
+            return 0;
+        }
+
+        public static int GetTreeHeight(int treeType) {
+            switch (treeType) {
+                case TREE_ONE:
+                    return (int) (int) (92 * game.SCALE);
+                case TREE_TWO, TREE_THREE:
+                    return (int) (54 * game.SCALE);
+
+            }
+            return 0;
+        }
 
         public static int GetSpriteAmount(int object_type) {
             switch (object_type) {
@@ -75,6 +123,7 @@ public  class features {
         public static final int CANNON_BALL_WIDTH = (int)(game.SCALE * CANNON_BALL_DEFAULT_WIDTH);
         public static final int CANNON_BALL_HEIGHT = (int)(game.SCALE * CANNON_BALL_DEFAULT_HEIGHT);
         public static final float SPEED = 0.75f * game.SCALE;
+
     }
     public static class UI{
         public static class BUTTON{
@@ -122,6 +171,13 @@ public  class features {
             public static final int SHARK_HEIGHT = (int) (SHARK_HEIGHT_DEFAULT * game.SCALE);
             public static final int SHARK_DRAWOFFSET_X = (int) (8 * game.SCALE);
             public static final int SHARK_DRAWOFFSET_Y = (int) (6 * game.SCALE);
+
+            public static final int PINKSTAR_WIDTH_DEFAULT = 34;
+            public static final int PINKSTAR_HEIGHT_DEFAULT = 30;
+            public static final int PINKSTAR_WIDTH = (int) (PINKSTAR_WIDTH_DEFAULT * game.SCALE);
+            public static final int PINKSTAR_HEIGHT = (int) (PINKSTAR_HEIGHT_DEFAULT * game.SCALE);
+            public static final int PINKSTAR_DRAWOFFSET_X = (int) (9 * game.SCALE);
+            public static final int PINKSTAR_DRAWOFFSET_Y = (int) (7 * game.SCALE);
 
             public static int SPRITE(int enemy_type, int enemy_state) {
                 switch (enemy_state) {

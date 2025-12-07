@@ -1,6 +1,7 @@
 package State;
 
 import UI.MenuButton;
+import UI.PauseButton;
 import main.game;
 
 import java.awt.event.MouseEvent;

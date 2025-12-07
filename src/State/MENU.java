@@ -1,6 +1,7 @@
 package State;
 
 import Function.LoadSave;
+import Sounds.AudioPlayer;
 import UI.MenuButton;
 import main.game;
 
@@ -18,6 +19,10 @@ public class MENU extends State implements  Methods{
         super(game1);
         LoadButtons();
         LoadBackground();
+        // Play menu music when entering menu
+        if (game1.getAudioPlayer() != null) {
+            game1.getAudioPlayer().playSong(AudioPlayer.MENU_1);
+        }
     }
 
     private void LoadBackground() {

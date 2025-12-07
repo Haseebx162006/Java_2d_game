@@ -15,8 +15,10 @@ public class EnemyMangerclass {
     private Playing playing;
     private BufferedImage[][] Enemy_images;
     private BufferedImage[][] Shark_images;
+    private BufferedImage[][] Star_images;
     private ArrayList<Enemy1> crabbies= new ArrayList<>();
     private ArrayList<Shark> sharks = new ArrayList<>();
+    private ArrayList<Star> stars= new ArrayList<>();
     public EnemyMangerclass(Playing playing){
         this.playing=playing;
         LoadEnemyImg();
@@ -29,6 +31,9 @@ public class EnemyMangerclass {
         for (Shark s : sharks) {
             s.loadLevelData(levelData);
         }
+        for (Star s: stars){
+            s.loadLevelData(levelData);
+        }
     }
 
     public void setPlayer(Player player) {
@@ -38,21 +43,51 @@ public class EnemyMangerclass {
         for (Shark s : sharks) {
             s.setPlayer(player);
         }
+        for (Star s: stars){
+            s.setPlayer(player);
+        }
     }
     public void draw(Graphics g,int levelxoffset){
         drawCrbbies(g,levelxoffset);
         drawSharks(g,levelxoffset);
+        drawStars(g,levelxoffset);
     }
 
     private void drawCrbbies(Graphics g, int levelxoffset) {
         for (Enemy1 c: crabbies){
-            g.drawImage(Enemy_images[c.getState_of_enemy()][c.getAnimationIndex()],(int)c.getBox().x-levelxoffset,(int)c.getBox().y,ENEMY1_WIDTH,ENEMY1_HEIGHT,null);
+            int state = c.getState_of_enemy();
+            int animIndex = c.getAnimationIndex();
+            // Safety check to prevent array index out of bounds
+            if (state >= 0 && state < Enemy_images.length && 
+                animIndex >= 0 && animIndex < Enemy_images[state].length &&
+                Enemy_images[state][animIndex] != null) {
+                g.drawImage(Enemy_images[state][animIndex],(int)c.getBox().x-levelxoffset,(int)c.getBox().y,ENEMY1_WIDTH,ENEMY1_HEIGHT,null);
+            }
         }
     }
     
     private void drawSharks(Graphics g, int levelxoffset) {
         for (Shark s: sharks){
-            g.drawImage(Shark_images[s.getState_of_enemy()][s.getAnimationIndex()],(int)s.getBox().x-levelxoffset,(int)s.getBox().y,SHARK_WIDTH,SHARK_HEIGHT,null);
+            int state = s.getState_of_enemy();
+            int animIndex = s.getAnimationIndex();
+            // Safety check to prevent array index out of bounds
+            if (state >= 0 && state < Shark_images.length && 
+                animIndex >= 0 && animIndex < Shark_images[state].length &&
+                Shark_images[state][animIndex] != null) {
+                g.drawImage(Shark_images[state][animIndex],(int)s.getBox().x-levelxoffset,(int)s.getBox().y,SHARK_WIDTH,SHARK_HEIGHT,null);
+            }
+        }
+    }
+    private void drawStars(Graphics g , int levelxoffset){
+        for (Star s : stars){
+            int state = s.getState_of_enemy();
+            int animIndex = s.getAnimationIndex();
+            // Safety check to prevent array index out of bounds
+            if (state >= 0 && state < Star_images.length && 
+                animIndex >= 0 && animIndex < Star_images[state].length &&
+                Star_images[state][animIndex] != null) {
+                g.drawImage(Star_images[state][animIndex],(int)s.getBox().x-levelxoffset,(int)s.getBox().y,PINKSTAR_WIDTH,PINKSTAR_HEIGHT,null);
+            }
         }
     }
     
@@ -60,7 +95,7 @@ public class EnemyMangerclass {
         // Create a NEW ArrayList with copies of the enemies, don't use the same reference!
         crabbies = new ArrayList<>(level.getCrabs());
         sharks = new ArrayList<>(level.getSharks());
-
+        stars= new ArrayList<>(level.getStars());
         // Ensure every enemy knows about the level data for collision & movement
         loadLevelData(level.getLvlData());
 
@@ -72,11 +107,20 @@ public class EnemyMangerclass {
 
 
     public void resetEnemies() {
-        // Reset all enemies for replay
         crabbies.clear();
         sharks.clear();
+        stars.clear();
+    }
+    private BufferedImage[][] getImgArr(BufferedImage atlas, int xSize, int ySize, int spriteW, int spriteH) {
+        BufferedImage[][] tempArr = new BufferedImage[ySize][xSize];
+        for (int j = 0; j < tempArr.length; j++)
+            for (int i = 0; i < tempArr[j].length; i++)
+                tempArr[j][i] = atlas.getSubimage(i * spriteW, j * spriteH, spriteW, spriteH);
+        return tempArr;
     }
     public void LoadEnemyImg() {
+
+        Star_images= getImgArr(LoadSave.GetAtlas(LoadSave.PINKENEMY_PNG),8,5,PINKSTAR_WIDTH_DEFAULT,PINKSTAR_HEIGHT_DEFAULT);
         // Load Enemy1 (Crab) images
         Enemy_images= new BufferedImage[5][9];
         BufferedImage load= LoadSave.GetAtlas(LoadSave.ENEMY_1_PNG);
@@ -85,7 +129,6 @@ public class EnemyMangerclass {
                 Enemy_images[i][j]=load.getSubimage(j*ENEMY1_WIDTH_DEFAULT,i*ENEMY1_HEIGHT_DEFAULT,ENEMY1_WIDTH_DEFAULT,ENEMY1_HEIGHT_DEFAULT);
             }
         }
-        
         // Load Shark images
         BufferedImage sharkLoad = LoadSave.GetAtlas(LoadSave.SHARK_PNG);
         int sharkAtlasWidth = sharkLoad.getWidth();
@@ -124,21 +167,35 @@ public class EnemyMangerclass {
         boolean anyEnemyAlive = false;
 
         for (Enemy1 c: crabbies){
-            if (!c.isDead()) {
+            if (c.isDead()) {
+                // Update dead enemies so death animation plays
+                c.update();
+            } else {
                 c.update();
                 anyEnemyAlive = true;
             }
         }
         
         for (Shark s: sharks){
-            if (!s.isDead()) {
+            if (s.isDead()) {
+                // Update dead enemies so death animation plays
+                s.update();
+            } else {
                 s.update();
                 anyEnemyAlive = true;
             }
         }
-
+        for (Star s: stars){
+            if (s.isDead){
+                // Update dead enemies so death animation plays
+                s.update();
+            } else {
+                s.update();
+                anyEnemyAlive=true;
+            }
+        }
         // Only complete level if there were enemies AND they're all dead
-        if ((crabbies.size() > 0 || sharks.size() > 0) && !anyEnemyAlive){
+        if ((crabbies.size() > 0 || sharks.size() > 0 || stars.size()>0) && !anyEnemyAlive){
             playing.setLevelCompleted(true);
         }
     }
@@ -149,50 +206,163 @@ public class EnemyMangerclass {
             return;
         }
         
-        // Check all enemies and hit the first valid one (prevents multiple hits per frame)
+        // Enhanced hit detection with better accuracy
+        // Check all enemy types and hit the closest valid one
+        
+        // Check Enemy1 (Crabs)
         for (Enemy1 enemy : crabbies) {
             if (!enemy.isDead() && !enemy.isHit()) {
-                // Use more precise hit detection - check if attack box intersects enemy hitbox
-                if (attackBox.intersects(enemy.getBox())) {
-                    enemy.takeDamage(25);
-                    // Only hit one enemy per attack frame for better feel
+                if (isAccurateHit(attackBox, enemy.getBox())) {
+                    enemy.takeDamage(35);
+                    return; // Only hit one enemy per attack
+                }
+            }
+        }
+        
+        // Check Sharks
+        for (Shark enemy : sharks) {
+            if (!enemy.isDead() && !enemy.isHit()) {
+                if (isAccurateHit(attackBox, enemy.getBox())) {
+                    enemy.takeDamage(30); // Balanced damage
                     return;
                 }
             }
         }
         
-        for (Shark enemy : sharks) {
+        // Check Stars
+        for (Star enemy : stars) {
             if (!enemy.isDead() && !enemy.isHit()) {
-                if (attackBox.intersects(enemy.getBox())) {
-                    enemy.takeDamage(25);
+                if (isAccurateHit(attackBox, enemy.getBox())) {
+                    enemy.takeDamage(30); // Balanced damage
                     return;
                 }
             }
         }
     }
     
+    // Enhanced hit detection with better accuracy checks
+    private boolean isAccurateHit(Rectangle2D.Float attackBox, Rectangle2D.Float enemyBox) {
+        if (!attackBox.intersects(enemyBox)) {
+            return false;
+        }
+        
+        // Additional checks for better accuracy:
+        // 1. Check vertical alignment (enemies should be roughly at same height)
+        float verticalOverlap = Math.min(attackBox.y + attackBox.height, enemyBox.y + enemyBox.height) - 
+                               Math.max(attackBox.y, enemyBox.y);
+        float minRequiredOverlap = Math.min(attackBox.height, enemyBox.height) * 0.5f;
+        
+        if (verticalOverlap < minRequiredOverlap) {
+            return false; // Not enough vertical overlap
+        }
+        
+        // 2. Check horizontal distance (should be within reasonable range)
+        float horizontalDistance = Math.abs((attackBox.x + attackBox.width / 2) - 
+                                           (enemyBox.x + enemyBox.width / 2));
+        float maxDistance = Math.max(attackBox.width, enemyBox.width) * 1.5f;
+        
+        return horizontalDistance <= maxDistance;
+    }
+    
     // Check if any enemy's attack hits player
     public void checkEnemyAttacks(Player player) {
+        if (player == null || player.isDead() || player.isInvulnerable()) {
+            return; // Player can't be hit if dead or invulnerable
+        }
+        
+        // Check Enemy1 (Crabs)
         for (Enemy1 enemy : crabbies) {
             if (!enemy.isDead()) {
                 Rectangle2D.Float enemyAttackBox = enemy.getAttackHitbox();
-                if (enemyAttackBox != null && enemyAttackBox.intersects(player.getBox())) {
-                    // Pass enemy position for proper knockback direction
+                if (enemyAttackBox != null && isAccurateEnemyHit(enemyAttackBox, player.getBox())) {
                     player.takeDamage(5, enemy.getBox().x);
-                    // Only allow one hit per enemy attack animation
-                    return; // Prevent multiple enemies hitting in same frame
+                    return; // Only allow one hit per frame
                 }
             }
         }
         
+        // Check Sharks
         for (Shark enemy : sharks) {
             if (!enemy.isDead()) {
                 Rectangle2D.Float enemyAttackBox = enemy.getAttackHitbox();
-                if (enemyAttackBox != null && enemyAttackBox.intersects(player.getBox())) {
-                    player.takeDamage(5, enemy.getBox().x);
+                if (enemyAttackBox != null && isAccurateEnemyHit(enemyAttackBox, player.getBox())) {
+                    player.takeDamage(6, enemy.getBox().x); // Slightly more damage
                     return;
                 }
             }
         }
+        
+        // Check Stars
+        for (Star enemy : stars) {
+            if (!enemy.isDead()) {
+                Rectangle2D.Float enemyAttackBox = enemy.getAttackHitbox();
+                if (enemyAttackBox != null && isAccurateEnemyHit(enemyAttackBox, player.getBox())) {
+                    player.takeDamage(6, enemy.getBox().x); // Slightly more damage
+                    return;
+                }
+            }
+        }
+    }
+    
+    // Enhanced enemy attack hit detection
+    private boolean isAccurateEnemyHit(Rectangle2D.Float enemyAttackBox, Rectangle2D.Float playerBox) {
+        if (!enemyAttackBox.intersects(playerBox)) {
+            return false;
+        }
+        
+        // Check vertical alignment for more accurate hits
+        float verticalOverlap = Math.min(enemyAttackBox.y + enemyAttackBox.height, playerBox.y + playerBox.height) - 
+                               Math.max(enemyAttackBox.y, playerBox.y);
+        float minRequiredOverlap = Math.min(enemyAttackBox.height, playerBox.height) * 0.6f;
+        
+        return verticalOverlap >= minRequiredOverlap;
+    }
+
+    public Playing getPlaying() {
+        return playing;
+    }
+
+    public void setPlaying(Playing playing) {
+        this.playing = playing;
+    }
+
+    public BufferedImage[][] getEnemy_images() {
+        return Enemy_images;
+    }
+
+    public void setEnemy_images(BufferedImage[][] enemy_images) {
+        Enemy_images = enemy_images;
+    }
+
+    public BufferedImage[][] getShark_images() {
+        return Shark_images;
+    }
+
+    public void setShark_images(BufferedImage[][] shark_images) {
+        Shark_images = shark_images;
+    }
+
+    public ArrayList<Enemy1> getCrabbies() {
+        return crabbies;
+    }
+
+    public void setCrabbies(ArrayList<Enemy1> crabbies) {
+        this.crabbies = crabbies;
+    }
+
+    public ArrayList<Shark> getSharks() {
+        return sharks;
+    }
+
+    public void setSharks(ArrayList<Shark> sharks) {
+        this.sharks = sharks;
+    }
+
+    public ArrayList<Star> getStars() {
+        return stars;
+    }
+
+    public void setStars(ArrayList<Star> stars) {
+        this.stars = stars;
     }
 }

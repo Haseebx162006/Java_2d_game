@@ -101,16 +101,23 @@ public abstract class Enemy extends Entity {
         
         currentHealth -= damage;
         
-        // Apply stronger knockback if not dead for better feedback
+        // Enhanced knockback system for better feedback
         if (currentHealth > 0 && player != null) {
-            // Push enemy away from player
+            // Calculate knockback direction and strength
             float knockbackDirection = player.getBox().x < box.x ? 1 : -1;
-            float knockback = 8.0f * game.SCALE; // Increased knockback for better feel
+            float knockback = 10.0f * game.SCALE; // Increased knockback for better feel
             
-            // Update position with knockback
+            // Apply knockback with collision check
             float newX = box.x + knockback * knockbackDirection;
             if (CanMove(newX, box.y, box.width, box.height, levelData)) {
                 box.x = newX;
+            } else {
+                // If can't move horizontally, try smaller knockback
+                float smallerKnockback = 5.0f * game.SCALE;
+                newX = box.x + smallerKnockback * knockbackDirection;
+                if (CanMove(newX, box.y, box.width, box.height, levelData)) {
+                    box.x = newX;
+                }
             }
         }
         
@@ -149,13 +156,27 @@ public abstract class Enemy extends Entity {
     }
 
     protected boolean canAttackPlayer() {
-        if (player == null || isDead || attackCooldown > 0 || player.isDead()) {
+        if (player == null || isDead || attackCooldown > 0 || player.isDead() || player.isInvulnerable()) {
             return false;
         }
         float distance = Math.abs(player.getBox().x - box.x);
         float yDistance = Math.abs(player.getBox().y - box.y);
+        
+        // Enhanced range check - consider both horizontal and vertical distance
+        float maxHorizontalRange = attackRange;
+        float maxVerticalRange = box.height * 0.9f; // Slightly more lenient vertical check
+        
         // Check if player is within attack range and roughly at the same height
-        return distance <= attackRange && yDistance < box.height * 0.8f;
+        boolean inRange = distance <= maxHorizontalRange && yDistance < maxVerticalRange;
+        
+        // Also check if enemy is facing the player for more accurate attacks
+        if (inRange) {
+            boolean facingPlayer = (player.getBox().x < box.x && walkDir == LEFT) || 
+                                   (player.getBox().x > box.x && walkDir == RIGHT);
+            return facingPlayer;
+        }
+        
+        return false;
     }
 
     public Rectangle2D.Float getAttackHitbox() {
@@ -163,17 +184,20 @@ public abstract class Enemy extends Entity {
             return null;
         }
 
-        // Only active during specific attack frames (middle of 7-frame attack animation)
-        int attackActiveFrameStart = 3;
-        int attackActiveFrameEnd = 5;
+        // Get sprite count for this enemy type's attack animation
+        int attackSpriteCount = SPRITE(Type_of_enemy, ATTACK);
+        
+        // Only active during middle frames of attack animation for better timing
+        int attackActiveFrameStart = Math.max(1, attackSpriteCount / 3);
+        int attackActiveFrameEnd = Math.min(attackSpriteCount - 1, (attackSpriteCount * 2) / 3);
 
         if (animationIndex < attackActiveFrameStart || animationIndex > attackActiveFrameEnd) {
             return null;
         }
 
-        // Improved hitbox - larger and better positioned for accurate hits
-        float attackWidth = 45 * game.SCALE;
-        float attackHeight = box.height * 0.85f;
+        // Enhanced hitbox - better positioned and sized for accurate hits
+        float attackWidth = 50 * game.SCALE; // Increased for better reach
+        float attackHeight = box.height * 0.9f; // Better vertical coverage
         float attackY = box.y + (box.height - attackHeight) / 2;
         float attackX;
 

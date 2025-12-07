@@ -1,6 +1,7 @@
 package Entities;
 
 import Function.LoadSave;
+import Sounds.AudioPlayer;
 import State.Playing;
 import main.game;
 
@@ -50,17 +51,18 @@ public class Player extends  Entity{
     // Combat system
     private boolean attackHitProcessed = false; // Track if this attack has already dealt damage
     private int attackDirection = RIGHT; // Track which direction player is facing for attack
-    private static final int ATTACK_ACTIVE_FRAME_START = 1; // Attack hitbox is active from frame 1
+    private static final int ATTACK_ACTIVE_FRAME_START = 0; // Attack hitbox is active from frame 0
     private static final int ATTACK_ACTIVE_FRAME_END = 2; // Attack hitbox is active until frame 2 (of 3 total)
     private boolean invulnerable = false;
     private int invulnerabilityTimer = 0;
-    private static final int ATTACK_COOLDOWN = 20; // Cooldown between attacks
+    private static final int ATTACK_COOLDOWN = 15; // Cooldown between attacks (reduced for better responsiveness)
     private int attackCooldown = 0;
     private Playing playing;
     private float knockbackX = 0; // Knockback velocity
-    private static final float KNOCKBACK_SPEED = 3.0f * game.SCALE;
-    private static final int KNOCKBACK_DURATION = 10; // frames
+    private static final float KNOCKBACK_SPEED = 4.0f * game.SCALE; // Increased for better feedback
+    private static final int KNOCKBACK_DURATION = 12; // frames (slightly longer)
     private int knockbackTimer = 0;
+    private int lastAttackFrame = -1; // Track which frame the attack was processed on
 
     public void setDead(boolean dead) {
         isDead = dead;
@@ -70,6 +72,9 @@ public class Player extends  Entity{
         this.y = spawn.y;
         box.x = x;
         box.y = y;
+        // Force player to be in air when spawning to avoid getting stuck
+        DuringAir = true;
+        airSpeed = 0;
     }
     private static final int INVULNERABILITY_DURATION = 60; // 1 second at 60 FPS
     public Player(float x, float y, int width, int height, Playing playing) {
@@ -143,6 +148,10 @@ public class Player extends  Entity{
         Animation_tick = 0;
         Animation_index = 0;
         deathAnimationTimer = 0;
+        // Play die sound
+        if (playing != null && playing.Getgame() != null && playing.Getgame().getAudioPlayer() != null) {
+            playing.Getgame().getAudioPlayer().playEffect(AudioPlayer.DIE);
+        }
     }
 
     private void checkInsideWater() {
@@ -185,12 +194,13 @@ public class Player extends  Entity{
 
         // Reset attack hit tracking when attack animation starts (first frame)
         if (attacking && Playermove == ATTACK && Animation_index == 0 && Animation_tick == 0) {
-            attackHitProcessed = false;
+            resetAttackTracking();
         }
 
         // Reset attack hit tracking when attack ends
-        if (!attacking && Playermove != ATTACK) {
+        if (!attacking && attackHitProcessed) {
             attackHitProcessed = false;
+            lastAttackFrame = -1;
         }
     }
     
@@ -250,11 +260,11 @@ public class Player extends  Entity{
     
     private void updateKnockback() {
         // Knockback is now handled in UpdatePosition() method
-        // This method just decrements the timer
+        // This method just decrements the timer and applies damping
         if (knockbackTimer > 0) {
             knockbackTimer--;
-            // Gradually reduce knockback
-            knockbackX *= 0.85f;
+            // Gradually reduce knockback with smooth damping
+            knockbackX *= 0.88f; // Slightly slower damping for smoother feel
             if (knockbackTimer <= 0 || Math.abs(knockbackX) < 0.1f) {
                 knockbackX = 0;
                 knockbackTimer = 0;
@@ -290,10 +300,22 @@ public class Player extends  Entity{
         attackDirection = RIGHT;
         Playermove = STANDING;
         ResetAnimation();
-        // Reset position
-        box.x = 200;
-        box.y = 200;
-        DuringAir = false;
+        // Reset position to spawn point from level, or default
+        Point spawnPoint = playing.getLevelManager().getLevel().getPlayerSpawn();
+        if (spawnPoint != null) {
+            box.x = spawnPoint.x;
+            box.y = spawnPoint.y;
+            x = spawnPoint.x;
+            y = spawnPoint.y;
+        } else {
+            // Default spawn if no spawn point set
+            box.x = 200;
+            box.y = 200;
+            x = 200;
+            y = 200;
+        }
+        // Always start in air when resetting to spawn point so player falls safely
+        DuringAir = true;
         airSpeed = 0;
         knockbackX = 0;
         knockbackTimer = 0;
@@ -312,25 +334,50 @@ public class Player extends  Entity{
             return null;
         }
         
-        // Attack hitbox is active during frames 0-1 (first two frames for better responsiveness)
-        if (Animation_index > ATTACK_ACTIVE_FRAME_END) {
+        // Attack hitbox is active during frames 0-2 for better hit detection
+        if (Animation_index < ATTACK_ACTIVE_FRAME_START || Animation_index > ATTACK_ACTIVE_FRAME_END) {
             return null;
         }
         
-        // Melee attack hitbox - shorter range for closer combat
-        float attackWidth = 30 * game.SCALE; // Reduced width for closer combat range
-        float attackHeight = box.height * 0.85f; // Taller hitbox for better vertical coverage
+        // Enhanced melee attack hitbox - better range and positioning
+        float attackWidth = 40 * game.SCALE; // Increased width for better reach
+        float attackHeight = box.height * 0.9f; // Taller hitbox for better vertical coverage
         float attackY = box.y + (box.height - attackHeight) / 2; // Center vertically
+        
+        // Determine attack direction based on player movement
+        if (left) {
+            attackDirection = LEFT;
+        } else if (right) {
+            attackDirection = RIGHT;
+        }
+        // If not moving, use last direction
+        
         float attackX;
         
-        // Attack hitbox extends further in the direction player is facing
+        // Attack hitbox extends in the direction player is facing
         if (attackDirection == LEFT) {
-            attackX = box.x - attackWidth; // Extend fully to the left
+            attackX = box.x - attackWidth; // Extend to the left
         } else {
-            attackX = box.x + box.width; // Extend fully to the right
+            attackX = box.x + box.width; // Extend to the right
         }
         
         return new Rectangle2D.Float(attackX, attackY, attackWidth, attackHeight);
+    }
+    
+    // Check if this attack frame has already been processed
+    public boolean isAttackFrameProcessed(int frame) {
+        return lastAttackFrame == frame;
+    }
+    
+    // Mark attack frame as processed
+    public void markAttackFrameProcessed(int frame) {
+        lastAttackFrame = frame;
+    }
+    
+    // Reset attack tracking when starting new attack
+    public void resetAttackTracking() {
+        attackHitProcessed = false;
+        lastAttackFrame = -1;
     }
     
     public boolean hasAttackHitProcessed() {
@@ -353,7 +400,7 @@ public class Player extends  Entity{
         // Only allow starting attack if not already attacking and cooldown is complete
         if (attacking && !this.attacking && attackCooldown <= 0) {
             this.attacking = true;
-            attackHitProcessed = false;
+            resetAttackTracking(); // Reset tracking for new attack
             attackCooldown = ATTACK_COOLDOWN;
             // Set attack animation
             Playermove = ATTACK;
@@ -482,6 +529,10 @@ public class Player extends  Entity{
         airSpeed=jumpSpeed;
         canJump=false;
         jump=false;
+        // Play jump sound
+        if (playing != null && playing.Getgame() != null && playing.Getgame().getAudioPlayer() != null) {
+            playing.Getgame().getAudioPlayer().playEffect(AudioPlayer.JUMP);
+        }
     }
 
     private void resetAirState() {
@@ -555,8 +606,25 @@ public class Player extends  Entity{
     }
     public void LoadlevelData(int[][] DataOfLevel){
         this.DataOfLevel=DataOfLevel;
-        if (!OnFloor(box,DataOfLevel)){
-            DuringAir=true;
+        // Check if player is stuck in tiles and move them up if needed
+        if (DataOfLevel != null && CanMove(box.x, box.y, box.width, box.height, DataOfLevel)) {
+            // Position is clear, check if on floor
+            if (!OnFloor(box, DataOfLevel)){
+                DuringAir=true;
+            }
+        } else {
+            // Player is stuck in tiles, move them up until clear
+            DuringAir = true;
+            airSpeed = 0;
+            // Try moving up tile by tile until we find a clear position
+            for (int i = 1; i <= 10; i++) {
+                float testY = box.y - (i * game.TILE_SIZE);
+                if (testY >= 0 && CanMove(box.x, testY, box.width, box.height, DataOfLevel)) {
+                    box.y = testY;
+                    y = testY;
+                    break;
+                }
+            }
         }
     }
     // Getter and setter

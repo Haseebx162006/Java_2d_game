@@ -2,6 +2,7 @@ package GameLevels;
 
 import Entities.Enemy1;
 import Entities.Shark;
+import Entities.Star;
 import Function.features;
 import Rewards.*;
 import Rewards.Container;
@@ -25,6 +26,11 @@ public class Level {
     private ArrayList<CannonGun> cannons = new ArrayList<>();
     private ArrayList<BackgroundTree> trees = new ArrayList<>();
     private ArrayList<Grass> grass = new ArrayList<>();
+    private ArrayList<Star> stars= new ArrayList<>();
+
+    public ArrayList<Star> getStars() {
+        return stars;
+    }
 
     private int lvlTilesWide;
     private int maxTilesOffset;
@@ -76,7 +82,17 @@ public class Level {
         switch (greenValue) {
             case ENEMY_1 -> crabs.add(new Enemy1(x * game.TILE_SIZE, y * game.TILE_SIZE));
             case SHARK -> sharks.add(new Shark(x * game.TILE_SIZE, y * game.TILE_SIZE));
-            case 100 -> playerSpawn = new Point(x * game.TILE_SIZE, y * game.TILE_SIZE);
+            case PINKSTAR -> stars.add(new Star(x*game.TILE_SIZE,y*game.TILE_SIZE));
+            case 90-> {
+                // Spawn player 5 tiles above the marked position to ensure they're in the air
+                // This prevents getting stuck in tiles
+                int spawnY = y * game.TILE_SIZE - (5 * game.TILE_SIZE);
+                // Make sure spawn Y is not negative - keep at least 2 tiles from top
+                if (spawnY < 2 * game.TILE_SIZE) {
+                    spawnY = 2 * game.TILE_SIZE;
+                }
+                playerSpawn = new Point(x * game.TILE_SIZE, spawnY);
+            }
         }
     }
     private void loadObjects(int blueValue, int x, int y) {
