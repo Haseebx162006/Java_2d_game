@@ -24,7 +24,6 @@ public class Level {
     private ArrayList<Arrow> arrows = new ArrayList<>();
     private ArrayList<Container> containers = new ArrayList<>();
     private ArrayList<CannonGun> cannons = new ArrayList<>();
-    private ArrayList<BackgroundTree> trees = new ArrayList<>();
     private ArrayList<Grass> grass = new ArrayList<>();
     private ArrayList<Star> stars= new ArrayList<>();
 
@@ -101,7 +100,6 @@ public class Level {
             case BOX, BARREL -> containers.add(new Container(x * game.TILE_SIZE, y * game.TILE_SIZE, blueValue));
             case SPIKE -> arrows.add(new Arrow(x * game.TILE_SIZE, y * game.TILE_SIZE, SPIKE));
             case CANNON_LEFT, CANNON_RIGHT -> cannons.add(new CannonGun(x * game.TILE_SIZE, y * game.TILE_SIZE, blueValue));
-            case TREE_ONE, TREE_TWO, TREE_THREE -> trees.add(new BackgroundTree(x * game.TILE_SIZE, y * game.TILE_SIZE, blueValue));
         }
     }
 
@@ -116,7 +114,7 @@ public class Level {
     public ArrayList<Enemy1> getCrabs() {
         return crabs;
     }
-    
+
     public ArrayList<Shark> getSharks() {
         return sharks;
     }
@@ -137,9 +135,6 @@ public class Level {
         return cannons;
     }
 
-    public ArrayList<BackgroundTree> getTrees() {
-        return trees;
-    }
 
     public ArrayList<Grass> getGrass() {
         return grass;

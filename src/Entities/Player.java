@@ -47,7 +47,7 @@ public class Player extends  Entity{
     private boolean isDead = false;
     private int deathAnimationTimer = 0;
     private static final int DEATH_ANIMATION_DURATION = 120; // frames for death animation
-    
+
     // Combat system
     private boolean attackHitProcessed = false; // Track if this attack has already dealt damage
     private int attackDirection = RIGHT; // Track which direction player is facing for attack
@@ -104,18 +104,18 @@ public class Player extends  Entity{
         }
 
         UpdatePosition();
-        
+
         // Check for water collision after position update to catch movement into water
         if (IsEntityInWater(box, playing.getLevelManager().getLevel().getLvlData())) {
             KillPlayer();
             return;
         }
-        
+
         playing.checkObjectHit(box);
-        
+
         // Always check for spikes/arrows regardless of movement (player can fall onto them)
         checkArrowChecked();
-        
+
         // Always check for potions when moving horizontally
         if (Player_is_moving) {
             checkPotiontouched();
@@ -203,15 +203,15 @@ public class Player extends  Entity{
             lastAttackFrame = -1;
         }
     }
-    
+
     private void updateDeathAnimation() {
         deathAnimationTimer++;
     }
-    
+
     public boolean isDeathAnimationComplete() {
         return isDead && deathAnimationTimer >= DEATH_ANIMATION_DURATION;
     }
-    
+
     private void updateHitCooldown() {
         if (hitCooldown > 0) {
             hitCooldown--;
@@ -220,13 +220,13 @@ public class Player extends  Entity{
             }
         }
     }
-    
+
     // Health methods
     public void takeDamage(int damage) {
         // Overload without enemy position - use default knockback
         takeDamage(damage, box.x);
     }
-    
+
     public void takeDamage(int damage, float enemyX) {
         if (invulnerable || isDead()) {
             return; // Can't take damage while invulnerable or dead
@@ -241,11 +241,11 @@ public class Player extends  Entity{
         // Activate invulnerability
         invulnerable = true;
         invulnerabilityTimer = INVULNERABILITY_DURATION;
-        
+
         // Apply knockback when hit - push player away from enemy
         applyKnockback(enemyX);
     }
-    
+
     private void applyKnockback(float enemyX) {
         // Push player away from the enemy that hit them
         if (enemyX < box.x) {
@@ -257,7 +257,7 @@ public class Player extends  Entity{
         }
         knockbackTimer = KNOCKBACK_DURATION;
     }
-    
+
     private void updateKnockback() {
         // Knockback is now handled in UpdatePosition() method
         // This method just decrements the timer and applies damping
@@ -271,23 +271,23 @@ public class Player extends  Entity{
             }
         }
     }
-    
+
     public int getCurrentHealth() {
         return currentHealth;
     }
-    
+
     public int getMaxHealth() {
         return maxHealth;
     }
-    
+
     public boolean isAlive() {
         return !isDead && currentHealth > 0;
     }
-    
+
     public boolean isDead() {
         return isDead;
     }
-    
+
     public void reset() {
         // Reset player for replay
         currentHealth = maxHealth;
@@ -322,28 +322,28 @@ public class Player extends  Entity{
         invulnerable = false;
         invulnerabilityTimer = 0;
     }
-    
+
     public boolean isAttacking() {
         return attacking && Playermove == ATTACK;
     }
-    
+
     // Get attack hitbox (area in front of player when attacking)
     // Only active during specific frames of the attack animation
     public Rectangle2D.Float getAttackHitbox() {
         if (!attacking || Playermove != ATTACK) {
             return null;
         }
-        
+
         // Attack hitbox is active during frames 0-2 for better hit detection
         if (Animation_index < ATTACK_ACTIVE_FRAME_START || Animation_index > ATTACK_ACTIVE_FRAME_END) {
             return null;
         }
-        
+
         // Enhanced melee attack hitbox - better range and positioning
         float attackWidth = 40 * game.SCALE; // Increased width for better reach
         float attackHeight = box.height * 0.9f; // Taller hitbox for better vertical coverage
         float attackY = box.y + (box.height - attackHeight) / 2; // Center vertically
-        
+
         // Determine attack direction based on player movement
         if (left) {
             attackDirection = LEFT;
@@ -351,39 +351,39 @@ public class Player extends  Entity{
             attackDirection = RIGHT;
         }
         // If not moving, use last direction
-        
+
         float attackX;
-        
+
         // Attack hitbox extends in the direction player is facing
         if (attackDirection == LEFT) {
             attackX = box.x - attackWidth; // Extend to the left
         } else {
             attackX = box.x + box.width; // Extend to the right
         }
-        
+
         return new Rectangle2D.Float(attackX, attackY, attackWidth, attackHeight);
     }
-    
+
     // Check if this attack frame has already been processed
     public boolean isAttackFrameProcessed(int frame) {
         return lastAttackFrame == frame;
     }
-    
+
     // Mark attack frame as processed
     public void markAttackFrameProcessed(int frame) {
         lastAttackFrame = frame;
     }
-    
+
     // Reset attack tracking when starting new attack
     public void resetAttackTracking() {
         attackHitProcessed = false;
         lastAttackFrame = -1;
     }
-    
+
     public boolean hasAttackHitProcessed() {
         return attackHitProcessed;
     }
-    
+
     public void setAttackHitProcessed(boolean processed) {
         attackHitProcessed = processed;
     }
@@ -413,7 +413,7 @@ public class Player extends  Entity{
     }
     private void UpdatePosition() {
         Player_is_moving=false;
-        
+
         // Apply knockback first if active (takes priority)
         if (knockbackTimer > 0) {
             float newX = box.x + knockbackX;
@@ -440,12 +440,12 @@ public class Player extends  Entity{
             }
             return; // Don't allow other movement during knockback
         }
-        
+
         // Prevent jump during attack animation
         if (jump && !DuringAir && !attacking){
             PlayerJumping();
         }
-        
+
         // Lock movement during attack animation
         if (attacking && Playermove == ATTACK) {
             // Only allow vertical movement (gravity/jumping) during attack, not horizontal
@@ -469,7 +469,7 @@ public class Player extends  Entity{
             }
             return; // Don't allow horizontal movement during attack
         }
-        
+
         if (!left && !right && !DuringAir){
             return;
         }
@@ -555,7 +555,7 @@ public class Player extends  Entity{
             Playermove = GROUND; // Keep death animation
             return;
         }
-        
+
         int previousAnimation = Playermove;
 
         if (attacking) {
@@ -596,13 +596,13 @@ public class Player extends  Entity{
     }
     private void load_Animations() {
 
-            BufferedImage img= LoadSave.GetAtlas(LoadSave.PlayerImgAddress);
-            Animation= new BufferedImage[9][6];
-            for (int i = 0; i <Animation.length; i++) {
-                for (int j = 0; j < Animation[i].length; j++) {
-                    Animation[i][j]= img.getSubimage(j*64,i*40,64,40);
-                }
+        BufferedImage img= LoadSave.GetAtlas(LoadSave.PlayerImgAddress);
+        Animation= new BufferedImage[9][6];
+        for (int i = 0; i <Animation.length; i++) {
+            for (int j = 0; j < Animation[i].length; j++) {
+                Animation[i][j]= img.getSubimage(j*64,i*40,64,40);
             }
+        }
     }
     public void LoadlevelData(int[][] DataOfLevel){
         this.DataOfLevel=DataOfLevel;

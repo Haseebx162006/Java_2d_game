@@ -96,7 +96,7 @@ public  class features {
         public static int GetTreeHeight(int treeType) {
             switch (treeType) {
                 case TREE_ONE:
-                    return (int) (int) (92 * game.SCALE);
+                    return (int) (100 * game.SCALE);
                 case TREE_TWO, TREE_THREE:
                     return (int) (54 * game.SCALE);
 

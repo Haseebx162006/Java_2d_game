@@ -106,7 +106,7 @@ public class LevelManager {
     public void update(){
         updateWaterAnimation();
     }
-    
+
     private void updateWaterAnimation() {
         aniTick++;
         if (aniTick >= 20) { // Adjust this value to control animation speed (higher = slower)
@@ -142,7 +142,7 @@ public class LevelManager {
     public void loadnextLevel() {
         // Increment to next level
         Level_Index++;
-        
+
         // Check if we've completed all levels
         if (Level_Index >= levels.size()){
             System.out.println("All Levels Completed! Total levels: " + levels.size());
@@ -151,16 +151,16 @@ public class LevelManager {
             GameState.gameState=GameState.MENU;
             return;
         }
-        
+
         // Load the next level
         Level newLevel=levels.get(Level_Index);
-        
+
         // Don't add enemies here - LoadNextLevel() will handle it after resetting
         // This prevents duplicate enemy additions and ensures clean state
         Game.getPlaying().getPlayer().LoadlevelData(newLevel.getLvlData());
         Game.getPlaying().setLevelOffset(newLevel.getMaxLvlOffsetX());
         Game.getPlaying().getObjectsManager().loadObject(newLevel);
-        
+
         System.out.println("Loading level " + (Level_Index + 1) + " of " + levels.size());
     }
 }
