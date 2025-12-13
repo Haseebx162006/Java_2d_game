@@ -11,7 +11,7 @@ public class window_of_game {
     // Constructor: takes a game_panel object and adds it to the window
     public window_of_game(game_panel Game_panel) {
         // Create the window
-        J_frame = new JFrame();
+        J_frame = new JFrame("HOPMAN Game");
         J_frame.add(Game_panel);
         // Prevent window resizing (to keep game layout consistent)
         J_frame.setResizable(false);

@@ -7,6 +7,7 @@ import State.MENU;
 import State.OPTIONS;
 import State.Playing;
 import UI.Audio;
+import UI.SplashScreen;
 
 import java.awt.*;
 
@@ -30,6 +31,7 @@ public class game implements Runnable{
     private MENU Menue;
     private OPTIONS options;
     private AudioPlayer audioPlayer;
+    private SplashScreen splashScreen;
     //*********************************
     // Game constructor
     public game(){
@@ -46,6 +48,7 @@ public class game implements Runnable{
         audioPlayer = new AudioPlayer();
         audiobuttons= new Audio();
         audiobuttons.setGame(this);
+        splashScreen = new SplashScreen(this);
         Menue= new MENU(this);
         playing=new Playing(this);
         options= new OPTIONS(this);
@@ -87,6 +90,9 @@ public class game implements Runnable{
     public synchronized  void UpdateGame() {
 
         switch (GameState.gameState){
+            case SPLASH:
+                splashScreen.update();
+                break;
             case MENU:
                 Menue.update();
                 break;
@@ -108,6 +114,9 @@ public class game implements Runnable{
 
     public synchronized void RenderGraphicsGame(Graphics g){
         switch (GameState.gameState){
+            case SPLASH:
+                splashScreen.draw(g);
+                break;
             case MENU:
                 Menue.draw(g);
                 break;
@@ -138,5 +147,9 @@ public class game implements Runnable{
 
     public AudioPlayer getAudioPlayer() {
         return audioPlayer;
+    }
+    
+    public SplashScreen getSplashScreen() {
+        return splashScreen;
     }
 }

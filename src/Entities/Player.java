@@ -72,7 +72,7 @@ public class Player extends  Entity{
         this.y = spawn.y;
         box.x = x;
         box.y = y;
-        // Force player to be in air when spawning to avoid getting stuck
+
         DuringAir = true;
         airSpeed = 0;
     }
@@ -97,7 +97,6 @@ public class Player extends  Entity{
     public void UpdatePlayer(){
         if (isDead) {
             updateDeathAnimation();
-            // Still update animation so death animation plays
             setAnimation();
             updateAnimation();
             return;
@@ -105,7 +104,6 @@ public class Player extends  Entity{
 
         UpdatePosition();
 
-        // Check for water collision after position update to catch movement into water
         if (IsEntityInWater(box, playing.getLevelManager().getLevel().getLvlData())) {
             KillPlayer();
             return;
@@ -113,10 +111,9 @@ public class Player extends  Entity{
 
         playing.checkObjectHit(box);
 
-        // Always check for spikes/arrows regardless of movement (player can fall onto them)
         checkArrowChecked();
 
-        // Always check for potions when moving horizontally
+
         if (Player_is_moving) {
             checkPotiontouched();
             tileY=(int)(box.y/game.TILE_SIZE);
@@ -143,7 +140,7 @@ public class Player extends  Entity{
     public void KillPlayer(){
         this.currentHealth=0;
         isDead=true;
-        // Reset death animation state
+
         Playermove = GROUND;
         Animation_tick = 0;
         Animation_index = 0;
@@ -155,7 +152,7 @@ public class Player extends  Entity{
     }
 
     private void checkInsideWater() {
-        System.out.println("=== WATER CHECK ===");
+        System.out.println("WATER CHECK");
         System.out.println("Player box.y: " + box.y + ", box.height: " + box.height);
         System.out.println("Player bottom Y: " + (box.y + box.height));
 
@@ -166,7 +163,7 @@ public class Player extends  Entity{
         System.out.println("IsEntityInWater returned: " + inWater);
 
         if (inWater){
-            System.out.println("!!! PLAYER DIED FROM WATER !!!");
+            System.out.println("PLAYER DIED FROM WATER");
             KillPlayer();
             setDead(true);
         }
@@ -180,12 +177,10 @@ public class Player extends  Entity{
         }
     }
     private void updateCombat() {
-        // Handle attack cooldown
         if (attackCooldown > 0) {
             attackCooldown--;
         }
 
-        // Update attack direction continuously based on movement input for better responsiveness
         if (left) {
             attackDirection = LEFT;
         } else if (right) {
@@ -229,7 +224,7 @@ public class Player extends  Entity{
 
     public void takeDamage(int damage, float enemyX) {
         if (invulnerable || isDead()) {
-            return; // Can't take damage while invulnerable or dead
+            return;
         }
 
         currentHealth -= damage;
@@ -247,20 +242,17 @@ public class Player extends  Entity{
     }
 
     private void applyKnockback(float enemyX) {
-        // Push player away from the enemy that hit them
+
         if (enemyX < box.x) {
-            // Enemy is to the left, push player right
             knockbackX = KNOCKBACK_SPEED;
         } else {
-            // Enemy is to the right, push player left
             knockbackX = -KNOCKBACK_SPEED;
         }
         knockbackTimer = KNOCKBACK_DURATION;
     }
 
     private void updateKnockback() {
-        // Knockback is now handled in UpdatePosition() method
-        // This method just decrements the timer and applies damping
+
         if (knockbackTimer > 0) {
             knockbackTimer--;
             // Gradually reduce knockback with smooth damping
@@ -289,7 +281,6 @@ public class Player extends  Entity{
     }
 
     public void reset() {
-        // Reset player for replay
         currentHealth = maxHealth;
         isDead = false;
         isHit = false;
@@ -308,13 +299,13 @@ public class Player extends  Entity{
             x = spawnPoint.x;
             y = spawnPoint.y;
         } else {
-            // Default spawn if no spawn point set
+
             box.x = 200;
             box.y = 200;
             x = 200;
             y = 200;
         }
-        // Always start in air when resetting to spawn point so player falls safely
+
         DuringAir = true;
         airSpeed = 0;
         knockbackX = 0;
@@ -327,21 +318,20 @@ public class Player extends  Entity{
         return attacking && Playermove == ATTACK;
     }
 
-    // Get attack hitbox (area in front of player when attacking)
-    // Only active during specific frames of the attack animation
+
     public Rectangle2D.Float getAttackHitbox() {
         if (!attacking || Playermove != ATTACK) {
             return null;
         }
 
-        // Attack hitbox is active during frames 0-2 for better hit detection
+
         if (Animation_index < ATTACK_ACTIVE_FRAME_START || Animation_index > ATTACK_ACTIVE_FRAME_END) {
             return null;
         }
 
-        // Enhanced melee attack hitbox - better range and positioning
-        float attackWidth = 40 * game.SCALE; // Increased width for better reach
-        float attackHeight = box.height * 0.9f; // Taller hitbox for better vertical coverage
+
+        float attackWidth = 40 * game.SCALE;
+        float attackHeight = box.height * 0.9f;
         float attackY = box.y + (box.height - attackHeight) / 2; // Center vertically
 
         // Determine attack direction based on player movement
@@ -420,7 +410,7 @@ public class Player extends  Entity{
             if (CanMove(newX, box.y, box.width, box.height, DataOfLevel)) {
                 box.x = newX;
             }
-            // Still allow gravity during knockback
+
             if (DuringAir) {
                 float newY = box.y + airSpeed;
                 if (CanMove(box.x, newY, box.width, box.height, DataOfLevel)) {
@@ -441,16 +431,16 @@ public class Player extends  Entity{
             return; // Don't allow other movement during knockback
         }
 
-        // Prevent jump during attack animation
+
         if (jump && !DuringAir && !attacking){
             PlayerJumping();
         }
 
         // Lock movement during attack animation
         if (attacking && Playermove == ATTACK) {
-            // Only allow vertical movement (gravity/jumping) during attack, not horizontal
+
             if (DuringAir) {
-                // Apply gravity during attack if in air
+
                 float newY = box.y + airSpeed;
                 if (CanMove(box.x, newY, box.width, box.height, DataOfLevel)) {
                     box.y = newY;
@@ -467,16 +457,13 @@ public class Player extends  Entity{
                     }
                 }
             }
-            return; // Don't allow horizontal movement during attack
+            return;
         }
 
         if (!left && !right && !DuringAir){
             return;
         }
-        // i create this method for updating the position
-        // whenever the player press a key
 
-        // Temporary variables to hold values only for canMove function and i then pass to original x and y
         float Xspeed=0;
         boolean horizontalMove = false;
         if (left){

@@ -19,6 +19,9 @@ public class keyboard_input implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
       switch (GameState.gameState){
+          case SPLASH:
+              gamePanel.getGame1().getSplashScreen().keyPressed(e);
+              break;
           case MENU:
               gamePanel.getGame1().getMenu().KeyPressed(e);
               break;

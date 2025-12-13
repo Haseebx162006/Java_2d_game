@@ -7,6 +7,7 @@ import GameLevels.LevelManager;
 import Rewards.Objects_Manager;
 import Sounds.AudioPlayer;
 import UI.CompleteLevelBanner;
+import UI.GameCompletedBanner;
 import UI.Pause;
 import main.game;
 
@@ -38,6 +39,8 @@ public class Playing extends State implements Methods{
     private int right_border=(int)(0.75*game.GAME_WIDTH);
     private int maxLevelOffset;
     public CompleteLevelBanner completeLevelBanner;
+    public GameCompletedBanner gameCompletedBanner;
+    private boolean gameCompleted = false;
     // Game Over state
     private boolean showGameOver = false;
     private int gameOverTimer = 0;
@@ -65,12 +68,18 @@ public class Playing extends State implements Methods{
         // Reset completion flag FIRST before loading next level
         level_Complete = false;
         
-        // Don't increment here - loadnextLevel() already handles the increment
-        levelManager.loadnextLevel();
+        // Check if all levels are completed
+        boolean allLevelsCompleted = levelManager.loadnextLevel();
         
-        // Check if we've completed all levels (loadnextLevel returns early if so)
-        if (levelManager.getLevel_Index() == 0 && GameState.gameState == GameState.MENU) {
-            return; // All levels completed, already returned to menu
+        if (allLevelsCompleted) {
+            // All levels completed - show game completed banner
+            gameCompleted = true;
+            level_Complete = false; // Don't show level complete banner
+            // Play completion sound if available
+            if (Game.getAudioPlayer() != null) {
+                Game.getAudioPlayer().lvlCompleted();
+            }
+            return;
         }
         
         // Reset game state for next level (but keep the level index)
@@ -135,6 +144,7 @@ public class Playing extends State implements Methods{
         //enemyMangerclass.setPlayer(player); // Pass player reference to enemies
         pause= new Pause(this);
         completeLevelBanner= new CompleteLevelBanner(this);
+        gameCompletedBanner = new GameCompletedBanner(this);
     }
 
     public void resetGame() {
@@ -149,6 +159,7 @@ public class Playing extends State implements Methods{
         gameOverTimer = 0;
         levelxOffset = 0;
         paused = false;
+        gameCompleted = false;
 
         level_Complete=false;
         
@@ -215,6 +226,10 @@ public class Playing extends State implements Methods{
                     Game.getAudioPlayer().playEffect(AudioPlayer.GAMEOVER);
                 }
             }
+        }
+        if (gameCompleted) {
+            gameCompletedBanner.update();
+            return;
         }
         if (paused){
             pause.update();
@@ -291,8 +306,11 @@ public class Playing extends State implements Methods{
         if (showGameOver) {
             drawGameOver(g);
         }
-        if (paused) pause.draw(g);
-        else if (level_Complete) {
+        if (gameCompleted) {
+            gameCompletedBanner.draw(g);
+        } else if (paused) {
+            pause.draw(g);
+        } else if (level_Complete) {
             completeLevelBanner.draw(g);
         }
     }
@@ -366,7 +384,9 @@ public class Playing extends State implements Methods{
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if (paused){
+        if (gameCompleted) {
+            gameCompletedBanner.mousePressed(e);
+        } else if (paused){
             pause.mousePressed(e);
         } else if (level_Complete) {
             completeLevelBanner.mousePressed(e);
@@ -386,7 +406,9 @@ public class Playing extends State implements Methods{
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (paused){
+        if (gameCompleted) {
+            gameCompletedBanner.mouseReleased(e);
+        } else if (paused){
             pause.mouseReleased(e);
         }
         else if (level_Complete) {
@@ -409,7 +431,9 @@ public class Playing extends State implements Methods{
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        if (paused){
+        if (gameCompleted) {
+            gameCompletedBanner.mouseMoved(e);
+        } else if (paused){
             pause.mouseMoved(e);
         }
         else if (level_Complete) {

@@ -70,7 +70,6 @@ public class EnemyMangerclass {
         for (Shark s: sharks){
             int state = s.getState_of_enemy();
             int animIndex = s.getAnimationIndex();
-            // Safety check to prevent array index out of bounds
             if (state >= 0 && state < Shark_images.length && 
                 animIndex >= 0 && animIndex < Shark_images[state].length &&
                 Shark_images[state][animIndex] != null) {
@@ -96,10 +95,9 @@ public class EnemyMangerclass {
         crabbies = new ArrayList<>(level.getCrabs());
         sharks = new ArrayList<>(level.getSharks());
         stars= new ArrayList<>(level.getStars());
-        // Ensure every enemy knows about the level data for collision & movement
+
         loadLevelData(level.getLvlData());
 
-        // Also make sure each enemy has a reference to the current player
         if (playing != null && playing.getPlayer() != null) {
             setPlayer(playing.getPlayer());
         }
@@ -121,7 +119,7 @@ public class EnemyMangerclass {
     public void LoadEnemyImg() {
 
         Star_images= getImgArr(LoadSave.GetAtlas(LoadSave.PINKENEMY_PNG),8,5,PINKSTAR_WIDTH_DEFAULT,PINKSTAR_HEIGHT_DEFAULT);
-        // Load Enemy1 (Crab) images
+
         Enemy_images= new BufferedImage[5][9];
         BufferedImage load= LoadSave.GetAtlas(LoadSave.ENEMY_1_PNG);
         for (int i = 0; i < Enemy_images.length; i++) {
@@ -136,8 +134,7 @@ public class EnemyMangerclass {
         
         // Calculate maximum frames per row based on atlas width
         int maxFramesPerRow = sharkAtlasWidth / SHARK_WIDTH_DEFAULT;
-        
-        // Create array with maximum needed frames (8 for IDLE and ATTACK)
+
         Shark_images = new BufferedImage[5][9];
         
         for (int i = 0; i < Shark_images.length; i++) {
@@ -168,7 +165,7 @@ public class EnemyMangerclass {
 
         for (Enemy1 c: crabbies){
             if (c.isDead()) {
-                // Update dead enemies so death animation plays
+
                 c.update();
             } else {
                 c.update();
@@ -194,8 +191,7 @@ public class EnemyMangerclass {
                 anyEnemyAlive=true;
             }
         }
-        // Only complete level if there were enemies AND they're all dead
-        // Also check that we're not already in a completed state to prevent false triggers
+
         if ((crabbies.size() > 0 || sharks.size() > 0 || stars.size()>0) && !anyEnemyAlive){
             // Only set completed if not already completed (prevents re-triggering)
             if (!playing.isLevelCompleted()) {
@@ -212,7 +208,7 @@ public class EnemyMangerclass {
         
         // Enhanced hit detection with better accuracy
         // Check all enemy types and hit the closest valid one
-        
+
         // Check Enemy1 (Crabs)
         for (Enemy1 enemy : crabbies) {
             if (!enemy.isDead() && !enemy.isHit()) {
@@ -244,23 +240,21 @@ public class EnemyMangerclass {
         }
     }
     
-    // Enhanced hit detection with better accuracy checks
+
     private boolean isAccurateHit(Rectangle2D.Float attackBox, Rectangle2D.Float enemyBox) {
         if (!attackBox.intersects(enemyBox)) {
             return false;
         }
-        
-        // Additional checks for better accuracy:
-        // 1. Check vertical alignment (enemies should be roughly at same height)
+
         float verticalOverlap = Math.min(attackBox.y + attackBox.height, enemyBox.y + enemyBox.height) - 
                                Math.max(attackBox.y, enemyBox.y);
         float minRequiredOverlap = Math.min(attackBox.height, enemyBox.height) * 0.5f;
         
         if (verticalOverlap < minRequiredOverlap) {
-            return false; // Not enough vertical overlap
+            return false;
         }
         
-        // 2. Check horizontal distance (should be within reasonable range)
+
         float horizontalDistance = Math.abs((attackBox.x + attackBox.width / 2) - 
                                            (enemyBox.x + enemyBox.width / 2));
         float maxDistance = Math.max(attackBox.width, enemyBox.width) * 1.5f;
@@ -268,19 +262,18 @@ public class EnemyMangerclass {
         return horizontalDistance <= maxDistance;
     }
     
-    // Check if any enemy's attack hits player
+
     public void checkEnemyAttacks(Player player) {
         if (player == null || player.isDead() || player.isInvulnerable()) {
             return; // Player can't be hit if dead or invulnerable
         }
-        
-        // Check Enemy1 (Crabs)
+
         for (Enemy1 enemy : crabbies) {
             if (!enemy.isDead()) {
                 Rectangle2D.Float enemyAttackBox = enemy.getAttackHitbox();
                 if (enemyAttackBox != null && isAccurateEnemyHit(enemyAttackBox, player.getBox())) {
                     player.takeDamage(5, enemy.getBox().x);
-                    return; // Only allow one hit per frame
+                    return;
                 }
             }
         }
@@ -290,7 +283,7 @@ public class EnemyMangerclass {
             if (!enemy.isDead()) {
                 Rectangle2D.Float enemyAttackBox = enemy.getAttackHitbox();
                 if (enemyAttackBox != null && isAccurateEnemyHit(enemyAttackBox, player.getBox())) {
-                    player.takeDamage(6, enemy.getBox().x); // Slightly more damage
+                    player.takeDamage(6, enemy.getBox().x);
                     return;
                 }
             }
@@ -308,7 +301,7 @@ public class EnemyMangerclass {
         }
     }
     
-    // Enhanced enemy attack hit detection
+
     private boolean isAccurateEnemyHit(Rectangle2D.Float enemyAttackBox, Rectangle2D.Float playerBox) {
         if (!enemyAttackBox.intersects(playerBox)) {
             return false;

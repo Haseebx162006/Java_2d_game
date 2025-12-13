@@ -139,7 +139,7 @@ public class LevelManager {
         return levels.size();
     }
 
-    public void loadnextLevel() {
+    public boolean loadnextLevel() {
         // Increment to next level
         Level_Index++;
 
@@ -148,8 +148,8 @@ public class LevelManager {
             System.out.println("All Levels Completed! Total levels: " + levels.size());
             // Reset to first level (0) so next playthrough starts from beginning
             Level_Index = 0;
-            GameState.gameState=GameState.MENU;
-            return;
+            // Return true to indicate all levels are completed
+            return true;
         }
 
         // Load the next level
@@ -162,5 +162,6 @@ public class LevelManager {
         Game.getPlaying().getObjectsManager().loadObject(newLevel);
 
         System.out.println("Loading level " + (Level_Index + 1) + " of " + levels.size());
+        return false; // Not all levels completed yet
     }
 }

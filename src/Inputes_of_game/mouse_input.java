@@ -15,6 +15,9 @@ public class mouse_input implements MouseListener, MouseMotionListener {
     @Override
     public void mouseClicked(MouseEvent e) {
        switch (GameState.gameState){
+           case SPLASH:
+               gamePanel.getGame1().getSplashScreen().mouseClicked(e);
+               break;
            case PLAYING:
                gamePanel.getGame1().getPlaying().mouseClicked(e);
                break;
@@ -24,6 +27,9 @@ public class mouse_input implements MouseListener, MouseMotionListener {
     @Override
     public void mousePressed(MouseEvent e) {
         switch (GameState.gameState) {
+            case SPLASH:
+                gamePanel.getGame1().getSplashScreen().mousePressed(e);
+                break;
             case MENU:
                 gamePanel.getGame1().getMenu().mousePressed(e);
                 break;

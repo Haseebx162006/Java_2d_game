@@ -24,7 +24,7 @@ public abstract class Enemy extends Entity {
     protected float gravity = 0.04f * game.SCALE;
     protected float fallSpeed = 0.5f * game.SCALE;
 
-    protected int maxHealth = 50;
+    protected int maxHealth = 25;
     protected int currentHealth = maxHealth;
     protected boolean isDead = false;
     protected boolean isHit = false;
@@ -98,21 +98,18 @@ public abstract class Enemy extends Entity {
         if (isDead || hitCooldown > 0) {
             return;
         }
-        
         currentHealth -= damage;
-        
         // Enhanced knockback system for better feedback
         if (currentHealth > 0 && player != null) {
-            // Calculate knockback direction and strength
+
             float knockbackDirection = player.getBox().x < box.x ? 1 : -1;
             float knockback = 10.0f * game.SCALE; // Increased knockback for better feel
-            
-            // Apply knockback with collision check
+
             float newX = box.x + knockback * knockbackDirection;
             if (CanMove(newX, box.y, box.width, box.height, levelData)) {
                 box.x = newX;
             } else {
-                // If can't move horizontally, try smaller knockback
+
                 float smallerKnockback = 5.0f * game.SCALE;
                 newX = box.x + smallerKnockback * knockbackDirection;
                 if (CanMove(newX, box.y, box.width, box.height, levelData)) {
@@ -161,15 +158,11 @@ public abstract class Enemy extends Entity {
         }
         float distance = Math.abs(player.getBox().x - box.x);
         float yDistance = Math.abs(player.getBox().y - box.y);
-        
-        // Enhanced range check - consider both horizontal and vertical distance
         float maxHorizontalRange = attackRange;
         float maxVerticalRange = box.height * 0.9f; // Slightly more lenient vertical check
-        
-        // Check if player is within attack range and roughly at the same height
+
         boolean inRange = distance <= maxHorizontalRange && yDistance < maxVerticalRange;
-        
-        // Also check if enemy is facing the player for more accurate attacks
+
         if (inRange) {
             boolean facingPlayer = (player.getBox().x < box.x && walkDir == LEFT) || 
                                    (player.getBox().x > box.x && walkDir == RIGHT);
@@ -184,7 +177,6 @@ public abstract class Enemy extends Entity {
             return null;
         }
 
-        // Get sprite count for this enemy type's attack animation
         int attackSpriteCount = SPRITE(Type_of_enemy, ATTACK);
         
         // Only active during middle frames of attack animation for better timing
@@ -195,9 +187,9 @@ public abstract class Enemy extends Entity {
             return null;
         }
 
-        // Enhanced hitbox - better positioned and sized for accurate hits
-        float attackWidth = 50 * game.SCALE; // Increased for better reach
-        float attackHeight = box.height * 0.9f; // Better vertical coverage
+
+        float attackWidth = 50 * game.SCALE;
+        float attackHeight = box.height * 0.9f;
         float attackY = box.y + (box.height - attackHeight) / 2;
         float attackX;
 
@@ -292,5 +284,4 @@ public abstract class Enemy extends Entity {
     public int CurrentEnemyState(){
         return State_of_enemy;
     }
-
 }
