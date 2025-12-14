@@ -148,8 +148,7 @@ public class Playing extends State implements Methods{
     }
 
     public void resetGame() {
-        // Reset game state for replay
-        // NOTE: This resets to level 0 - use resetCurrentLevel() to restart current level
+
         resetGame(true);
     }
     
@@ -163,8 +162,7 @@ public class Playing extends State implements Methods{
 
         level_Complete=false;
         
-        // Only reset level index to first level (0) when starting a completely new game from menu
-        // If resetToFirstLevel is false, keep the current level index
+
         if (resetToFirstLevel) {
             levelManager.setLevel_Index(0);
         }
@@ -173,16 +171,15 @@ public class Playing extends State implements Methods{
         player.reset();
         player.LoadlevelData(levelManager.getLevel().getLvlData());
 
-        // Reset enemies - MUST RE-ADD THEM!
         enemyMangerclass.resetEnemies(); // Clears the list
         enemyMangerclass.addEnemies(levelManager.getLevel());
         enemyMangerclass.loadLevelData(levelManager.getLevel().getLvlData());
         objectsManager.resetAllObjects();
         
-        // Reset objects for the current level
+
         objectsManager.loadObject(levelManager.getLevel());
         
-        // Set player spawn position for current level
+
         Point spawnPoint = levelManager.getLevel().getPlayerSpawn();
         if (spawnPoint != null) {
             player.setSpawn(spawnPoint);
@@ -190,7 +187,7 @@ public class Playing extends State implements Methods{
     }
     
     public void resetCurrentLevel() {
-        // Reset only the current level (used when player dies and wants to retry)
+
         resetGame(false);
     }
     public Player getPlayer(){
@@ -208,8 +205,7 @@ public class Playing extends State implements Methods{
         if (showGameOver) {
             gameOverTimer++;
             if (gameOverTimer >= GAME_OVER_DISPLAY_TIME) {
-                // Restart the current level instead of going to menu
-                // This allows player to retry the level they died on
+
                 resetCurrentLevel();
                 showGameOver = false;
                 gameOverTimer = 0;
@@ -221,7 +217,7 @@ public class Playing extends State implements Methods{
             if (player.isDeathAnimationComplete() && !showGameOver) {
                 showGameOver = true;
                 gameOverTimer = 0;
-                // Play game over sound
+
                 if (Game.getAudioPlayer() != null) {
                     Game.getAudioPlayer().playEffect(AudioPlayer.GAMEOVER);
                 }
@@ -236,13 +232,16 @@ public class Playing extends State implements Methods{
         } else if (level_Complete) {
             completeLevelBanner.update();
         }
-        else if (!paused && !player.isDead() && !level_Complete){
-            levelManager.update();
-            objectsManager.update(levelManager.getLevel().getLvlData(),player);
-            player.UpdatePlayer();
-            checkBorder();
-            enemyMangerclass.update(levelManager.getLevel().getLvlData(),player);
-            checkCombat(); // Check for attacks and collisions
+        else if (!paused && !player.isDead() && !level_Complete && !gameCompleted){
+            // Only update game logic if we have a valid level
+            if (levelManager != null && levelManager.getLevel() != null) {
+                levelManager.update();
+                objectsManager.update(levelManager.getLevel().getLvlData(),player);
+                player.UpdatePlayer();
+                checkBorder();
+                enemyMangerclass.update(levelManager.getLevel().getLvlData(),player);
+                checkCombat(); // Check for attacks and collisions
+            }
         }
         else if (paused){
             pause.update();
@@ -296,13 +295,20 @@ public class Playing extends State implements Methods{
     @Override
     public void draw(Graphics g) {
         g.drawImage(background,0,0,game.GAME_WIDTH,game.GAME_HEIGHT,null);
-        drawCloud(g);
-        levelManager.draw(g,levelxOffset);
-        player.RenderPlayer(g,levelxOffset);
-        enemyMangerclass.draw(g,levelxOffset);
-        objectsManager.draw(g,levelxOffset);
-        g.setColor(Color.RED);
-        drawHealthBar(g); // Draw player health bar
+        
+        // Only draw game elements if game is not completed
+        if (!gameCompleted) {
+            drawCloud(g);
+            if (levelManager != null && levelManager.getLevel() != null) {
+                levelManager.draw(g,levelxOffset);
+            }
+            player.RenderPlayer(g,levelxOffset);
+            enemyMangerclass.draw(g,levelxOffset);
+            objectsManager.draw(g,levelxOffset);
+            g.setColor(Color.RED);
+            drawHealthBar(g); // Draw player health bar
+        }
+        
         if (showGameOver) {
             drawGameOver(g);
         }

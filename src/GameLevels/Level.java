@@ -45,10 +45,6 @@ public class Level {
 
     private void loadLevel() {
 
-        // Looping through the image colors just once. Instead of one per
-        // object/enemy/etc..
-        // Removed many methods in HelpMethods class.
-
         for (int y = 0; y < img.getHeight(); y++)
             for (int x = 0; x < img.getWidth(); x++) {
                 Color c = new Color(img.getRGB(x, y));
@@ -83,8 +79,6 @@ public class Level {
             case SHARK -> sharks.add(new Shark(x * game.TILE_SIZE, y * game.TILE_SIZE));
             case PINKSTAR -> stars.add(new Star(x*game.TILE_SIZE,y*game.TILE_SIZE));
             case 90-> {
-                // Spawn player 5 tiles above the marked position to ensure they're in the air
-                // This prevents getting stuck in tiles
                 int spawnY = y * game.TILE_SIZE - (5 * game.TILE_SIZE);
                 // Make sure spawn Y is not negative - keep at least 2 tiles from top
                 if (spawnY < 2 * game.TILE_SIZE) {

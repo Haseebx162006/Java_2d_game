@@ -106,10 +106,9 @@ public class LevelManager {
     public void update(){
         updateWaterAnimation();
     }
-
     private void updateWaterAnimation() {
         aniTick++;
-        if (aniTick >= 20) { // Adjust this value to control animation speed (higher = slower)
+        if (aniTick >= 20) {
             aniTick = 0;
             aniIndex++;
             if (aniIndex >= 4) { // We have 4 frames of animation
@@ -133,6 +132,14 @@ public class LevelManager {
 
     }
     public Level getLevel(){
+        // Safety check to prevent index out of bounds
+        if (Level_Index < 0 || Level_Index >= levels.size()) {
+            // Return the last level if index is out of bounds
+            if (levels.size() > 0) {
+                return levels.get(levels.size() - 1);
+            }
+            return null;
+        }
         return levels.get(Level_Index);
     }
     public int getTotalLevelsnumber(){
@@ -140,28 +147,30 @@ public class LevelManager {
     }
 
     public boolean loadnextLevel() {
-        // Increment to next level
-        Level_Index++;
 
-        // Check if we've completed all levels
-        if (Level_Index >= levels.size()){
+        if (Level_Index >= levels.size() - 1) {
+
             System.out.println("All Levels Completed! Total levels: " + levels.size());
-            // Reset to first level (0) so next playthrough starts from beginning
             Level_Index = 0;
-            // Return true to indicate all levels are completed
             return true;
         }
 
-        // Load the next level
-        Level newLevel=levels.get(Level_Index);
+        // Increment to next level
+        Level_Index++;
 
-        // Don't add enemies here - LoadNextLevel() will handle it after resetting
-        // This prevents duplicate enemy additions and ensures clean state
+        // Safety check (shouldn't be needed, but just in case)
+        if (Level_Index >= levels.size()) {
+            Level_Index = 0;
+            return true;
+        }
+
+        Level newLevel = levels.get(Level_Index);
+
         Game.getPlaying().getPlayer().LoadlevelData(newLevel.getLvlData());
         Game.getPlaying().setLevelOffset(newLevel.getMaxLvlOffsetX());
         Game.getPlaying().getObjectsManager().loadObject(newLevel);
 
         System.out.println("Loading level " + (Level_Index + 1) + " of " + levels.size());
-        return false; // Not all levels completed yet
+        return false;
     }
 }

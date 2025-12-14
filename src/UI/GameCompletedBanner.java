@@ -27,8 +27,11 @@ public class GameCompletedBanner {
     }
     
     private void LoadButtons() {
-        int menu_ButtonX = (int)(387 * game.SCALE);
-        int y = (int)(250 * game.SCALE);
+        // Center the menu button horizontally
+        // Position will be calculated based on background image
+        int menu_ButtonX = game.GAME_WIDTH / 2 - URM_BUTTON / 2;
+        // Position button below the congratulations text, centered vertically in the lower part of banner
+        int y = backgroundY + backgroundH / 2 + 50;
         menu = new URMButtons(menu_ButtonX, y, URM_BUTTON, URM_BUTTON, 2);
     }
     
@@ -49,38 +52,42 @@ public class GameCompletedBanner {
         // Draw background image
         g.drawImage(image, backgroundX, backgroundY, backgroundW, backgroundH, null);
         
-        // Draw "GAME COMPLETED" text
-        g.setColor(new Color(255, 215, 0)); // Gold color
-        g.setFont(new Font("Arial", Font.BOLD, 48));
+        // Calculate center positions for better alignment
+        int centerX = game.GAME_WIDTH / 2;
+        int contentStartY = backgroundY + 30;
+        
+        // Draw "GAME COMPLETED" text - larger and more prominent
+        g.setFont(new Font("Arial", Font.BOLD, 52));
         FontMetrics fm = g.getFontMetrics();
         String gameCompletedText = "GAME COMPLETED!";
-        int textX = (game.GAME_WIDTH - fm.stringWidth(gameCompletedText)) / 2;
-        int textY = backgroundY + 60;
+        int textX = centerX - fm.stringWidth(gameCompletedText) / 2;
+        int textY = contentStartY + 50;
+        
         // Draw text with shadow for better visibility
-        g.setColor(Color.BLACK);
-        g.drawString(gameCompletedText, textX + 2, textY + 2);
-        g.setColor(new Color(255, 215, 0));
+        g.setColor(new Color(0, 0, 0, 180));
+        g.drawString(gameCompletedText, textX + 3, textY + 3);
+        g.setColor(new Color(255, 215, 0)); // Gold color
         g.drawString(gameCompletedText, textX, textY);
         
-        // Draw congratulations message
+        // Draw congratulations message - properly spaced
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 24));
+        g.setFont(new Font("Arial", Font.PLAIN, 22));
         String congratsText = "Congratulations! You've completed all levels!";
         fm = g.getFontMetrics();
-        int congratsX = (game.GAME_WIDTH - fm.stringWidth(congratsText)) / 2;
-        int congratsY = backgroundY + 100;
+        int congratsX = centerX - fm.stringWidth(congratsText) / 2;
+        int congratsY = textY + 55;
         g.drawString(congratsText, congratsX, congratsY);
         
-        // Draw menu button
+        // Draw menu button - centered below congratulations text
         menu.draw(g);
         
-        // Draw instruction text
+        // Draw instruction text - below the button with proper spacing
         g.setColor(new Color(200, 200, 200));
         g.setFont(new Font("Arial", Font.ITALIC, 16));
         String instructionText = "Click Menu to return to main menu";
         fm = g.getFontMetrics();
-        int instX = (game.GAME_WIDTH - fm.stringWidth(instructionText)) / 2;
-        int instY = backgroundY + backgroundH - 20;
+        int instX = centerX - fm.stringWidth(instructionText) / 2;
+        int instY = menu.getY() + URM_BUTTON + 30;
         g.drawString(instructionText, instX, instY);
     }
     

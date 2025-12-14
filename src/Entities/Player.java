@@ -81,7 +81,7 @@ public class Player extends  Entity{
         super(x, y,width,height);
         this.playing=playing;
         load_Animations();
-        CreateBox(x,y,game.SCALE*20,game.SCALE*29);
+        CreateBox(x,y,game.SCALE*18,game.SCALE*29);
         XOffset = (width - box.width) / 2f;
         YOffset = Math.max(0, height - box.height - FOOT_ADJUST);
     }

@@ -108,7 +108,6 @@ public class LoadSave {
             return new BufferedImage[0];
         }
 
-        // Create a map to quickly find files by name
         HashMap<String, File> fileMap = new HashMap<>();
         for (File f : files) {
             if (f.isFile() && f.getName().endsWith(".png")) {
@@ -116,7 +115,7 @@ public class LoadSave {
             }
         }
 
-        // Load all levels from 1 to maxLevel in order
+
         java.util.ArrayList<BufferedImage> levelList = new java.util.ArrayList<>();
         
         for (int i = 1; i <= maxLevel; i++) {
@@ -169,7 +168,7 @@ public class LoadSave {
             for (int x = 0; x < width; x++) {
                 int value = img.getRGB(x, y);
                 int red = (value >> 16) & 0xFF;
-                // Use a specific red value (e.g., 1) to mark enemy spawn tiles
+
                 if (red == 1) {
                     float worldX = x * game.TILE_SIZE;
                     float worldY = y * game.TILE_SIZE;

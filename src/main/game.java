@@ -39,7 +39,6 @@ public class game implements Runnable{
         Game_panel=new game_panel(this);
         game_window= new window_of_game(Game_panel);  // passing the gamePanel object to window so it will be drawn
         Game_panel.requestFocus(); // i use it for receiving the inputs from game window
-
         StartgameLoop();// game logic started in a separate thread
 
     }

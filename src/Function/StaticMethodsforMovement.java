@@ -36,7 +36,6 @@ public class StaticMethodsforMovement {
         float xi= x/game.TILE_SIZE;
         float yi= y/game.TILE_SIZE;
 
-        // Bounds checking to prevent array index out of bounds
         int tileX = (int) xi;
         int tileY = (int) yi;
         if(tileX < 0 || tileX >= levelData[0].length || tileY < 0 || tileY >= levelData.length){
@@ -44,7 +43,7 @@ public class StaticMethodsforMovement {
         }
 
         int value= levelData[tileY][tileX];
-        // Tile value 11 is air/empty, anything else is solid
+
         if (value != 11) {
             return true;
         }
@@ -207,8 +206,7 @@ public class StaticMethodsforMovement {
             return IsAllTilesClear(firstXTile, secondXTile, yTile, lvlData);
     }
     public static boolean IsAllTilesClear(int xStart, int xEnd, int yTile, int[][] lvlData) {
-        // Check all tiles between start and end at the given Y tile
-        // Check the main Y level and one tile above/below to account for height differences
+
         for (int yOffset = -1; yOffset <= 1; yOffset++) {
             int checkYTile = yTile + yOffset;
             // Make sure we don't go out of bounds
@@ -222,11 +220,9 @@ public class StaticMethodsforMovement {
                     continue;
                 }
                 
-                // Check if tile is solid (not empty/air)
+
                 int value = lvlData[checkYTile][x];
                 if (value != 11) { // 11 is air/empty
-                    // Block line of sight if there's a solid tile at the main Y level
-                    // or if there's a solid tile blocking the path between cannon and player
                     if (yOffset == 0) {
                         return false;
                     }
