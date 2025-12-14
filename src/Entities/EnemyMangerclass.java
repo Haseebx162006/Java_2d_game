@@ -96,6 +96,17 @@ public class EnemyMangerclass {
         sharks = new ArrayList<>(level.getSharks());
         stars= new ArrayList<>(level.getStars());
 
+        // Reset all enemies to alive state
+        for (Enemy1 crab : crabbies) {
+            crab.reset();
+        }
+        for (Shark shark : sharks) {
+            shark.reset();
+        }
+        for (Star star : stars) {
+            star.reset();
+        }
+
         loadLevelData(level.getLvlData());
 
         if (playing != null && playing.getPlayer() != null) {
@@ -175,7 +186,7 @@ public class EnemyMangerclass {
         
         for (Shark s: sharks){
             if (s.isDead()) {
-                // Update dead enemies so death animation plays
+                
                 s.update();
             } else {
                 s.update();
@@ -184,7 +195,7 @@ public class EnemyMangerclass {
         }
         for (Star s: stars){
             if (s.isDead){
-                // Update dead enemies so death animation plays
+           
                 s.update();
             } else {
                 s.update();
@@ -192,9 +203,10 @@ public class EnemyMangerclass {
             }
         }
 
+        
         if ((crabbies.size() > 0 || sharks.size() > 0 || stars.size()>0) && !anyEnemyAlive){
-            // Only set completed if not already completed (prevents re-triggering)
-            if (!playing.isLevelCompleted()) {
+            // Only set completed if not already completed and game is not in completed state
+            if (!playing.isLevelCompleted() && !playing.isGameCompleted()) {
                 playing.setLevelCompleted(true);
             }
         }
@@ -206,8 +218,7 @@ public class EnemyMangerclass {
             return;
         }
         
-        // Enhanced hit detection with better accuracy
-        // Check all enemy types and hit the closest valid one
+        
 
         // Check Enemy1 (Crabs)
         for (Enemy1 enemy : crabbies) {

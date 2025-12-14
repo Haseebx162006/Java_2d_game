@@ -159,26 +159,29 @@ public class Playing extends State implements Methods{
         levelxOffset = 0;
         paused = false;
         gameCompleted = false;
-
-        level_Complete=false;
-        
+        level_Complete = false;
 
         if (resetToFirstLevel) {
             levelManager.setLevel_Index(0);
         }
+        
+        
+        if (levelManager.getLevel() == null) {
+            return;
+        }
+        
         calculateLevelOffset();
         
         player.reset();
         player.LoadlevelData(levelManager.getLevel().getLvlData());
 
-        enemyMangerclass.resetEnemies(); // Clears the list
+    
+        enemyMangerclass.resetEnemies();
         enemyMangerclass.addEnemies(levelManager.getLevel());
         enemyMangerclass.loadLevelData(levelManager.getLevel().getLvlData());
+        
         objectsManager.resetAllObjects();
-        
-
         objectsManager.loadObject(levelManager.getLevel());
-        
 
         Point spawnPoint = levelManager.getLevel().getPlayerSpawn();
         if (spawnPoint != null) {
@@ -503,6 +506,10 @@ public class Playing extends State implements Methods{
     
     public boolean isLevelCompleted() {
         return level_Complete;
+    }
+    
+    public boolean isGameCompleted() {
+        return gameCompleted;
     }
 
     public void checkObjectHit(Rectangle2D.Float box) {

@@ -136,6 +136,20 @@ public abstract class Enemy extends Entity {
     public boolean isHit() {
         return isHit;
     }
+    
+    public void reset() {
+        // Reset enemy to alive state
+        isDead = false;
+        isHit = false;
+        currentHealth = maxHealth;
+        hitCooldown = 0;
+        attackCooldown = 0;
+        State_of_enemy = RUNNING;
+        animationIndex = 0;
+        animationTick = 0;
+        inAir = false;
+        airSpeed = 0;
+    }
 
     public int getCurrentHealth() {
         return currentHealth;
