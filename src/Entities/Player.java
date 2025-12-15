@@ -237,7 +237,6 @@ public class Player extends  Entity{
         invulnerable = true;
         invulnerabilityTimer = INVULNERABILITY_DURATION;
 
-        // Apply knockback when hit - push player away from enemy
         applyKnockback(enemyX);
     }
 

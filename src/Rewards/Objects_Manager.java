@@ -216,12 +216,9 @@ public class Objects_Manager {
         float playerCenterX = player.getBox().x + player.getBox().width / 2;
         
         if (c.getObjType() == CANNON_LEFT) {
-            // Cannon facing left, player must be to the left of cannon
-            // Also ensure player is not behind the cannon (player center should be to the left)
             return playerCenterX < cannonCenterX;
         } else if (c.getObjType() == CANNON_RIGHT) {
-            // Cannon facing right, player must be to the right of cannon
-            // Also ensure player is not behind the cannon (player center should be to the right)
+
             return playerCenterX > cannonCenterX;
         }
         return false;

@@ -102,7 +102,7 @@ public class Audio {
         if (volumeButton.isMousePressed()){
             volumeButton.changeX(e.getX());
             volumeButton.setMousePressed(true);
-            // Update volume immediately when dragging
+
             if (game != null && game.getAudioPlayer() != null && volumeButton != null) {
                 float volumeValue = (float)(volumeButton.getButtonX() - volumeButton.getMin()) / 
                                    (float)(volumeButton.getMax() - volumeButton.getMin());

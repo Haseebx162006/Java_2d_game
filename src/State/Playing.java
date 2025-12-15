@@ -489,6 +489,10 @@ public class Playing extends State implements Methods{
                 break;
             case KeyEvent.VK_K:
                 player.setAttack(true);
+                // Play attack sound for keyboard attack as well
+                if (Game.getAudioPlayer() != null) {
+                    Game.getAudioPlayer().playAttackSound();
+                }
                 break;
             case KeyEvent.VK_SPACE:
                 player.setJump(false);
